@@ -1,5 +1,139 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Play, Pause, RotateCw, Scissors } from 'lucide-react';
+import { Upload, Play, Pause, RotateCw, Scissors, Globe } from 'lucide-react';
+
+// 多语言文本配置
+const translations = {
+  en: {
+    title: "Sorti.ng - Algorithm Visualization",
+    subtitle: "Visualize and Audiolize Sorting Algorithms",
+    uploadImage: "Upload Image",
+    uploadAudio: "Upload Audio",
+    sliceDirection: "Slice Direction",
+    vertical: "Vertical",
+    horizontal: "Horizontal",
+    sliceCount: "Slice Count",
+    sortSpeed: "Sort Speed",
+    cropX: "Crop X",
+    cropWidth: "Crop Width",
+    audioStart: "Audio Start",
+    audioEnd: "Audio End",
+    visualSettings: "🎨 Visual Settings",
+    highlightSorting: "Highlight Sorting Elements",
+    highlightColor: "Highlight Color",
+    showSliceBorders: "Show Slice Borders",
+    borderColor: "Border Color",
+    borderWidth: "Border Width",
+    animationScale: "Animation Scale",
+    sortAlgorithm: "Sort Algorithm",
+    customAlgorithm: "Custom Algorithm Code",
+    startSort: "Start Sorting",
+    pause: "Pause",
+    resume: "Resume",
+    playFullAudio: "Play Full Audio",
+    reset: "Reset",
+    step: "Step",
+    of: "of",
+    sortingComplete: "✓ Sorting Complete!",
+    sortingInProgress: "⏳ Sorting in Progress...",
+    uploadInstructions: "Upload image and audio, then click Start Sorting",
+    uploadDetails: "Image will be sliced and shuffled, then restored by sorting algorithm",
+    speedDescription: "Higher speed = faster switching",
+    scaleDescription: "Adjust display size",
+    audioLoaded: "✓ Audio Loaded",
+    customAlgorithmPlaceholder: "const steps = [];\nconst array = [...arr];\nsteps.push([...array]);\n// Your sorting logic\nreturn steps;",
+    algorithmOptions: {
+      wave: "Wave Sort",
+      insertion: "Insertion Sort",
+      gnome: "Gnome Sort",
+      heap: "Heap Sort",
+      pigeonhole: "Pigeonhole Sort",
+      merge: "Merge Sort",
+      bogo: "Bogo Sort",
+      oddEven: "Odd-Even Sort",
+      counting: "Counting Sort",
+      radix: "Radix Sort",
+      cocktail: "Cocktail Sort",
+      quick: "Quick Sort",
+      bubble: "Bubble Sort",
+      tim: "Tim Sort",
+      bucket: "Bucket Sort",
+      shell: "Shell Sort",
+      selection: "Selection Sort",
+      custom: "Custom Algorithm"
+    },
+    alerts: {
+      uploadImageFirst: "Please upload an image first",
+      imageSliceFailed: "Failed to create image slices",
+      audioSliceFailed: "Failed to create audio slices",
+      customAlgorithmError: "Custom Algorithm Error: "
+    }
+  },
+  zh: {
+    title: "Sorti.ng - 算法可视化工具",
+    subtitle: "排序算法可视化与音频化",
+    uploadImage: "上传图片",
+    uploadAudio: "上传音频",
+    sliceDirection: "切片方向",
+    vertical: "纵向切片",
+    horizontal: "横向切片",
+    sliceCount: "切片数量",
+    sortSpeed: "排序速度",
+    cropX: "裁剪 X",
+    cropWidth: "裁剪宽度",
+    audioStart: "音频开始",
+    audioEnd: "音频结束",
+    visualSettings: "🎨 视觉效果设置",
+    highlightSorting: "高亮正在排序的元素",
+    highlightColor: "高亮颜色",
+    showSliceBorders: "显示切片边框",
+    borderColor: "边框颜色",
+    borderWidth: "边框粗细",
+    animationScale: "动画缩放",
+    sortAlgorithm: "排序算法",
+    customAlgorithm: "自定义算法代码",
+    startSort: "开始排序",
+    pause: "暂停",
+    resume: "继续",
+    playFullAudio: "播放完整音频",
+    reset: "重置",
+    step: "步骤",
+    of: "/",
+    sortingComplete: "✓ 排序完成!",
+    sortingInProgress: "⏳ 排序中...",
+    uploadInstructions: "上传图片和音频，点击开始排序查看效果",
+    uploadDetails: "图片会被切片并打乱，通过排序算法恢复原状",
+    speedDescription: "速度越高，切换越快",
+    scaleDescription: "调整显示大小",
+    audioLoaded: "✓ 音频已加载",
+    customAlgorithmPlaceholder: "const steps = [];\nconst array = [...arr];\nsteps.push([...array]);\n// 你的排序逻辑\nreturn steps;",
+    algorithmOptions: {
+      wave: "摆动排序",
+      insertion: "插入排序",
+      gnome: "地精排序",
+      heap: "堆排序",
+      pigeonhole: "鸽巢排序",
+      merge: "归并排序",
+      bogo: "猴子排序",
+      oddEven: "奇偶排序",
+      counting: "计数排序",
+      radix: "基数排序",
+      cocktail: "鸡尾酒排序",
+      quick: "快速排序",
+      bubble: "冒泡排序",
+      tim: "Tim排序",
+      bucket: "桶排序",
+      shell: "希尔排序",
+      selection: "选择排序",
+      custom: "自定义算法"
+    },
+    alerts: {
+      uploadImageFirst: "请先上传图片",
+      imageSliceFailed: "图片切片创建失败",
+      audioSliceFailed: "音频切片创建失败",
+      customAlgorithmError: "自定义算法错误: "
+    }
+  }
+};
 
 const SortVisualizer = () => {
   const [image, setImage] = useState(null);
@@ -31,6 +165,10 @@ const SortVisualizer = () => {
   const [borderWidth, setBorderWidth] = useState(2);
   const [animationScale, setAnimationScale] = useState(100);
   const [highlightedPositions, setHighlightedPositions] = useState([]);
+  
+  // 多语言状态
+  const [language, setLanguage] = useState('zh');
+  const t = translations[language];
   
   const audioContextRef = useRef(null);
   const currentSourceRef = useRef(null);
@@ -90,7 +228,7 @@ const SortVisualizer = () => {
           setAudioRange({ start: 0, end: buffer.duration });
           setAudio(URL.createObjectURL(file));
         } catch (error) {
-          alert('音频文件解码失败,请尝试其他格式');
+          alert(language === 'zh' ? '音频文件解码失败,请尝试其他格式' : 'Audio file decoding failed, please try another format');
         }
       };
       reader.readAsArrayBuffer(file);
@@ -194,12 +332,11 @@ const SortVisualizer = () => {
       try {
         currentSourceRef.current.stop();
       } catch (e) {
-        // 忽略停止错误
+        // Ignore stop errors
       }
     }
     
     const ctx = audioContextRef.current;
-    // 确保音频上下文处于运行状态
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
@@ -302,44 +439,38 @@ const SortVisualizer = () => {
 
     const getMax = (arr) => Math.max(...arr);
 
-    // 计数排序按 digit 位处理
     const countingSort = (exp) => {
       const n = arr.length;
       const output = new Array(n).fill(0);
       const count = new Array(10).fill(0);
 
-      // 统计某个位上的数字出现次数
       for (let i = 0; i < n; i++) {
         const digit = Math.floor(arr[i] / exp) % 10;
         count[digit]++;
       }
 
-      // 前缀和
       for (let i = 1; i < 10; i++) {
         count[i] += count[i - 1];
       }
 
-      // 从右到左构建 output 数组（稳定性）
       for (let i = n - 1; i >= 0; i--) {
         const digit = Math.floor(arr[i] / exp) % 10;
         output[--count[digit]] = arr[i];
       }
 
-      // 写回 arr，并记录变化
       for (let i = 0; i < n; i++) {
         const prev = arr[i];
         arr[i] = output[i];
 
         if (arr[i] !== prev) {
           steps.push([...arr]);
-          highlights.push([i]); // 只标记位置变化
+          highlights.push([i]);
         }
       }
     };
 
     const maxVal = getMax(arr);
 
-    // 对每一位进行计数排序
     for (let exp = 1; Math.floor(maxVal / exp) > 0; exp *= 10) {
       countingSort(exp);
     }
@@ -369,12 +500,10 @@ const SortVisualizer = () => {
           j++;
         }
         steps.push([...arr]);
-        // 只高亮当前合并的位置
         highlights.push([k]);
         k++;
       }
 
-      // 处理剩余元素 - 确保索引有效
       while (i < leftArr.length) {
         arr[k] = leftArr[i];
         steps.push([...arr]);
@@ -404,7 +533,6 @@ const SortVisualizer = () => {
     sort(0, arr.length - 1);
     return { steps, highlights };
   };
-
 
   const quickSort = (indices) => {
     const steps = [];
@@ -473,7 +601,7 @@ const SortVisualizer = () => {
     return { steps, highlights };
   };
 
-const selectionSort = (indices) => {
+  const selectionSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -510,9 +638,9 @@ const selectionSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const shellSort = (indices) => {
+  const shellSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -548,9 +676,9 @@ const shellSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const heapSort = (indices) => {
+  const heapSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -600,9 +728,9 @@ const heapSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const countingSort = (indices) => {
+  const countingSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -638,9 +766,9 @@ const countingSort = (indices) => {
     }
 
     return { steps, highlights };
-};
+  };
 
-const bucketSort = (indices, bucketSize = 5) => {
+  const bucketSort = (indices, bucketSize = 5) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -689,9 +817,9 @@ const bucketSort = (indices, bucketSize = 5) => {
     }
 
     return { steps, highlights };
-};
+  };
 
-const pigeonholeSort = (indices) => {
+  const pigeonholeSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -721,9 +849,9 @@ const pigeonholeSort = (indices) => {
     }
 
     return { steps, highlights };
-};
+  };
 
-const gnomeSort = (indices) => {
+  const gnomeSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -749,9 +877,9 @@ const gnomeSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const bogoSort = (indices) => {
+  const bogoSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -793,9 +921,9 @@ const bogoSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const cocktailSort = (indices) => {
+  const cocktailSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -845,9 +973,9 @@ const cocktailSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const oddEvenSort = (indices) => {
+  const oddEvenSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -890,9 +1018,9 @@ const oddEvenSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const waveSort = (indices) => {
+  const waveSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -925,9 +1053,9 @@ const waveSort = (indices) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
+  };
 
-const timSort = (indices, minRun = 32) => {
+  const timSort = (indices, minRun = 32) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -1013,28 +1141,27 @@ const timSort = (indices, minRun = 32) => {
     highlights.push([]);
     
     return { steps, highlights };
-};
-
+  };
 
   const executeCustomAlgorithm = (indices) => {
     try {
       const func = new Function('arr', customAlgorithm);
       const result = func([...indices]);
       if (!Array.isArray(result) || result.length === 0) {
-        throw new Error('必须返回步骤数组');
+        throw new Error(language === 'zh' ? '必须返回步骤数组' : 'Must return steps array');
       }
       const steps = Array.isArray(result[0]) ? result : [result];
       const highlights = steps.map(() => []);
       return { steps, highlights };
     } catch (e) {
-      alert('自定义算法错误: ' + e.message);
+      alert(t.alerts.customAlgorithmError + e.message);
       return bubbleSort(indices);
     }
   };
 
   const startSort = () => {
     if (!isImageLoaded) {
-      alert('请先上传图片');
+      alert(t.alerts.uploadImageFirst);
       return;
     }
     
@@ -1044,7 +1171,7 @@ const timSort = (indices, minRun = 32) => {
     const audSlices = createAudioSlices();
     
     if (imgSlices.length === 0) {
-      alert('图片切片创建失败');
+      alert(t.alerts.imageSliceFailed);
       return;
     }
     
@@ -1057,7 +1184,7 @@ const timSort = (indices, minRun = 32) => {
     setCurrentIndices(shuffled);
     
     if (audSlices.length === 0 && audioBuffer) {
-      alert('音频切片创建失败');
+      alert(t.alerts.audioSliceFailed);
       return;
     }
     
@@ -1178,7 +1305,7 @@ const timSort = (indices, minRun = 32) => {
     const scale = animationScale / 100;
     
     return (
-      <div style={containerStyle} className="w-full h-full">
+      <div style={containerStyle} className="w-full h-full relative">
         {currentIndices.map((idx, position) => {
           const slice = imageSlicesCache[idx];
           if (!slice) return null;
@@ -1215,6 +1342,14 @@ const timSort = (indices, minRun = 32) => {
             </div>
           );
         })}
+        
+        {/* 水印 */}
+        <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-80 hover:opacity-100 transition-opacity">
+          <p className="text-xl">
+            {t.algorithmOptions[sortAlgorithm]}
+          </p>
+          http://Sorti.ng/
+        </div>
       </div>
     );
   };
@@ -1222,15 +1357,34 @@ const timSort = (indices, minRun = 32) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-8">
       <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-2xl p-8">
-        <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
-          排序算法可视化与音频化工具
-        </h1>
+        {/* 标题栏 */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
+              Sorti.ng
+            </h1>
+            <p className="text-gray-600 mt-1">{t.subtitle}</p>
+          </div>
+          
+          {/* 语言切换 */}
+          <div className="flex items-center space-x-2">
+            <Globe className="w-5 h-5 text-gray-500" />
+            <select 
+              value={language} 
+              onChange={(e) => setLanguage(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+            </select>
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 hover:border-blue-500 transition">
             <label className="flex flex-col items-center cursor-pointer">
               <Upload className="w-12 h-12 text-blue-500 mb-2" />
-              <span className="text-lg font-semibold text-gray-700 mb-2">上传图片</span>
+              <span className="text-lg font-semibold text-gray-700 mb-2">{t.uploadImage}</span>
               <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
               {image && <img src={image} alt="preview" className="mt-4 max-h-40 rounded" />}
             </label>
@@ -1239,9 +1393,9 @@ const timSort = (indices, minRun = 32) => {
           <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 hover:border-purple-500 transition">
             <label className="flex flex-col items-center cursor-pointer">
               <Upload className="w-12 h-12 text-purple-500 mb-2" />
-              <span className="text-lg font-semibold text-gray-700 mb-2">上传音频</span>
+              <span className="text-lg font-semibold text-gray-700 mb-2">{t.uploadAudio}</span>
               <input type="file" accept="audio/*" onChange={handleAudioUpload} className="hidden" />
-              {audio && <p className="mt-4 text-green-600 font-semibold">✓ 音频已加载</p>}
+              {audio && <p className="mt-4 text-green-600 font-semibold">{t.audioLoaded}</p>}
             </label>
           </div>
         </div>
@@ -1249,42 +1403,42 @@ const timSort = (indices, minRun = 32) => {
         <div className="bg-gray-50 rounded-lg p-6 mb-8 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">切片方向</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sliceDirection}</label>
               <select value={sliceDirection} onChange={(e) => setSliceDirection(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-                <option value="vertical">纵向切片</option>
-                <option value="horizontal">横向切片</option>
+                <option value="vertical">{t.vertical}</option>
+                <option value="horizontal">{t.horizontal}</option>
               </select>
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">切片数量: {sliceCount}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sliceCount}: {sliceCount}</label>
               <input type="range" min="5" max="400" value={sliceCount} onChange={(e) => setSliceCount(Number(e.target.value))} className="w-full" />
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">排序速度: {sortSpeed}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sortSpeed}: {sortSpeed}</label>
               <input type="range" min="1" max="200" value={sortSpeed} onChange={(e) => setSortSpeed(Number(e.target.value))} className="w-full" />
-              <p className="text-xs text-gray-500 mt-1">速度越高,切换越快</p>
+              <p className="text-xs text-gray-500 mt-1">{t.speedDescription}</p>
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">裁剪 X: {cropArea.x}%</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.cropX}: {cropArea.x}%</label>
               <input type="range" min="0" max="50" value={cropArea.x} onChange={(e) => setCropArea({...cropArea, x: Number(e.target.value)})} className="w-full" />
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">裁剪宽度: {cropArea.width}%</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.cropWidth}: {cropArea.width}%</label>
               <input type="range" min="50" max="100" value={cropArea.width} onChange={(e) => setCropArea({...cropArea, width: Number(e.target.value)})} className="w-full" />
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">音频开始: {audioRange.start.toFixed(2)}秒</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.audioStart}: {audioRange.start.toFixed(2)}s</label>
               <input type="range" min="0" max={audioBuffer ? audioBuffer.duration - 0.5 : 100} step="0.1" value={audioRange.start} onChange={(e) => { const start = Number(e.target.value); setAudioRange({ start, end: Math.min(start + (audioBuffer ? audioBuffer.duration / 2 : 10), audioBuffer?.duration || 100) }); }} className="w-full" />
             </div>
           </div>
           
           <div className="border-t border-gray-200 pt-4 mt-4">
-            <h3 className="text-md font-bold text-gray-800 mb-3">🎨 视觉效果设置</h3>
+            <h3 className="text-md font-bold text-gray-800 mb-3">{t.visualSettings}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
@@ -1294,11 +1448,11 @@ const timSort = (indices, minRun = 32) => {
                     onChange={(e) => setShowHighlight(e.target.checked)}
                     className="w-4 h-4 text-blue-600 rounded"
                   />
-                  高亮正在排序的元素
+                  {t.highlightSorting}
                 </label>
                 {showHighlight && (
                   <div className="ml-6">
-                    <label className="block text-xs text-gray-600 mb-1">高亮颜色</label>
+                    <label className="block text-xs text-gray-600 mb-1">{t.highlightColor}</label>
                     <input 
                       type="color" 
                       value={highlightColor} 
@@ -1317,12 +1471,12 @@ const timSort = (indices, minRun = 32) => {
                     onChange={(e) => setShowBorder(e.target.checked)}
                     className="w-4 h-4 text-blue-600 rounded"
                   />
-                  显示切片边框
+                  {t.showSliceBorders}
                 </label>
                 {showBorder && (
                   <div className="ml-6 space-y-2">
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">边框颜色</label>
+                      <label className="block text-xs text-gray-600 mb-1">{t.borderColor}</label>
                       <input 
                         type="color" 
                         value={borderColor} 
@@ -1331,7 +1485,7 @@ const timSort = (indices, minRun = 32) => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">边框粗细: {borderWidth}px</label>
+                      <label className="block text-xs text-gray-600 mb-1">{t.borderWidth}: {borderWidth}px</label>
                       <input 
                         type="range" 
                         min="1" 
@@ -1346,7 +1500,7 @@ const timSort = (indices, minRun = 32) => {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">动画缩放: {animationScale}%</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{t.animationScale}: {animationScale}%</label>
                 <input 
                   type="range" 
                   min="25" 
@@ -1355,39 +1509,29 @@ const timSort = (indices, minRun = 32) => {
                   onChange={(e) => setAnimationScale(Number(e.target.value))}
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500 mt-1">调整显示大小</p>
+                <p className="text-xs text-gray-500 mt-1">{t.scaleDescription}</p>
               </div>
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">排序算法</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sortAlgorithm}</label>
             <select value={sortAlgorithm} onChange={(e) => setSortAlgorithm(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-              <option value="wave">摆动排序</option>
-              <option value="insertion">插入排序</option>
-              <option value="gnome">地精排序</option>
-              <option value="heap">堆排序</option>
-              <option value="pigeonhole">鸽巢排序</option>
-              <option value="merge">归并排序</option>
-              <option value="bogo">猴子排序</option>
-              <option value="oddEven">奇偶排序</option>
-              <option value="counting">计数排序</option>
-              <option value="radix">基数排序</option>
-              <option value="cocktail">鸡尾酒排序</option>
-              <option value="quick">快速排序</option>
-              <option value="bubble">冒泡排序</option>
-              <option value="tim">Tim排序</option>
-              <option value="bucket">桶排序</option>
-              <option value="shell">希尔排序</option>
-              <option value="selection">选择排序</option>
-              <option value="custom">自定义算法</option>
+              {Object.entries(t.algorithmOptions).map(([key, value]) => (
+                <option key={key} value={key}>{value}</option>
+              ))}
             </select>
           </div>
           
           {sortAlgorithm === 'custom' && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">自定义算法代码</label>
-              <textarea value={customAlgorithm} onChange={(e) => setCustomAlgorithm(e.target.value)} placeholder="const steps = [];\nconst array = [...arr];\nsteps.push([...array]);\n// 你的排序逻辑\nreturn steps;" className="w-full p-3 border border-gray-300 rounded font-mono text-sm h-32 focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.customAlgorithm}</label>
+              <textarea 
+                value={customAlgorithm} 
+                onChange={(e) => setCustomAlgorithm(e.target.value)} 
+                placeholder={t.customAlgorithmPlaceholder}
+                className="w-full p-3 border border-gray-300 rounded font-mono text-sm h-32 focus:ring-2 focus:ring-blue-500" 
+              />
             </div>
           )}
         </div>
@@ -1395,30 +1539,32 @@ const timSort = (indices, minRun = 32) => {
         <div className="flex justify-center gap-4 mb-8 flex-wrap">
           <button onClick={startSort} disabled={!image || isPlaying} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition">
             <Play className="w-5 h-5" />
-            开始排序
+            {t.startSort}
           </button>
           
           <button onClick={() => { setIsPlaying(!isPlaying); audioPlaybackRef.current.isPlaying = !isPlaying; }} disabled={sortStepsIndices.length === 0} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition">
             {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-            {isPlaying ? '暂停' : '继续'}
+            {isPlaying ? t.pause : t.resume}
           </button>
           
           <button onClick={playFinalAudio} disabled={!isSorted || !audioBuffer || isPlayingFinalAudio} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition">
             <Play className="w-5 h-5" />
-            {isPlayingFinalAudio ? '播放中...' : '播放完整音频'}
+            {isPlayingFinalAudio ? (language === 'zh' ? '播放中...' : 'Playing...') : t.playFullAudio}
           </button>
           
           <button onClick={() => { if (currentSourceRef.current) { try { currentSourceRef.current.stop(); } catch (e) {} } stopFinalAudio(); setCurrentIndices([]); setSortStepsIndices([]); setHighlightedPositions([]); setCurrentStep(0); setIsPlaying(false); setIsSorted(false); audioPlaybackRef.current.isPlaying = false; }} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 font-semibold shadow-lg transition">
             <RotateCw className="w-5 h-5" />
-            重置
+            {t.reset}
           </button>
         </div>
         
         {sortStepsIndices.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>步骤: {currentStep + 1} / {sortStepsIndices.length}</span>
-              <span className={isSorted ? 'text-green-600 font-bold' : ''}>{isSorted ? '✓ 排序完成!' : '⏳ 排序中...'}</span>
+              <span>{t.step}: {currentStep + 1} {t.of} {sortStepsIndices.length}</span>
+              <span className={isSorted ? 'text-green-600 font-bold' : ''}>
+                {isSorted ? t.sortingComplete : t.sortingInProgress}
+              </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
               <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300" style={{ width: ((currentStep + 1) / sortStepsIndices.length) * 100 + '%' }} />
@@ -1434,8 +1580,8 @@ const timSort = (indices, minRun = 32) => {
           ) : (
             <div className="text-center text-gray-400 py-20">
               <Scissors className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">上传图片和音频,点击开始排序查看效果</p>
-              <p className="text-sm mt-2">图片会被切片并打乱,通过排序算法恢复原状</p>
+              <p className="text-lg">{t.uploadInstructions}</p>
+              <p className="text-sm mt-2">{t.uploadDetails}</p>
             </div>
           )}
         </div>
