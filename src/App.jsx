@@ -473,6 +473,549 @@ const SortVisualizer = () => {
     return { steps, highlights };
   };
 
+const selectionSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const n = arr.length;
+
+    for (let i = 0; i < n - 1; i++) {
+        let minIdx = i;
+
+        for (let j = i + 1; j < n; j++) {
+            steps.push([...arr]);
+            highlights.push([j, minIdx]);
+            
+            if (arr[j] < arr[minIdx]) {
+                minIdx = j;
+                steps.push([...arr]);
+                highlights.push([minIdx]);
+            }
+        }
+
+        if (minIdx !== i) {
+            [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+            steps.push([...arr]);
+            highlights.push([i, minIdx]);
+        } else {
+            steps.push([...arr]);
+            highlights.push([i]);
+        }
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const shellSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const n = arr.length;
+
+    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+        for (let i = gap; i < n; i++) {
+            let temp = arr[i];
+            let j = i;
+
+            steps.push([...arr]);
+            highlights.push([i]);
+
+            while (j >= gap && arr[j - gap] > temp) {
+                arr[j] = arr[j - gap];
+                steps.push([...arr]);
+                highlights.push([j, j - gap]);
+                j -= gap;
+            }
+
+            if (arr[j] !== temp) {
+                arr[j] = temp;
+                steps.push([...arr]);
+                highlights.push([j]);
+            }
+        }
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const heapSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const n = arr.length;
+
+    const heapify = (size, i) => {
+        let largest = i;
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+
+        if (left < size && arr[left] > arr[largest]) {
+            largest = left;
+            steps.push([...arr]);
+            highlights.push([left, largest]);
+        }
+        
+        if (right < size && arr[right] > arr[largest]) {
+            largest = right;
+            steps.push([...arr]);
+            highlights.push([right, largest]);
+        }
+
+        if (largest !== i) {
+            [arr[i], arr[largest]] = [arr[largest], arr[i]];
+            steps.push([...arr]);
+            highlights.push([i, largest]);
+            heapify(size, largest);
+        }
+    };
+
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+        heapify(n, i);
+    }
+
+    for (let i = n - 1; i > 0; i--) {
+        [arr[0], arr[i]] = [arr[i], arr[0]];
+        steps.push([...arr]);
+        highlights.push([0, i]);
+
+        heapify(i, 0);
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const countingSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const maxVal = Math.max(...arr);
+    const minVal = Math.min(...arr);
+    const range = maxVal - minVal + 1;
+    const count = new Array(range).fill(0);
+    const output = new Array(arr.length);
+
+    for (let num of arr) {
+        count[num - minVal]++;
+    }
+
+    for (let i = 1; i < range; i++) {
+        count[i] += count[i - 1];
+    }
+
+    for (let i = arr.length - 1; i >= 0; i--) {
+        const num = arr[i];
+        output[count[num - minVal] - 1] = num;
+        steps.push([...output.slice(0, i).concat(arr.slice(i))]);
+        highlights.push([count[num - minVal] - 1]);
+        count[num - minVal]--;
+    }
+
+    for (let i = 0; i < arr.length; i++) {
+        arr[i] = output[i];
+        steps.push([...arr]);
+        highlights.push([i]);
+    }
+
+    return { steps, highlights };
+};
+
+const bucketSort = (indices, bucketSize = 5) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    if (arr.length === 0) return { steps, highlights };
+
+    const minVal = Math.min(...arr);
+    const maxVal = Math.max(...arr);
+
+    const bucketCount = Math.floor((maxVal - minVal) / bucketSize) + 1;
+    const buckets = Array.from({ length: bucketCount }, () => []);
+
+    for (let num of arr) {
+        const idx = Math.floor((num - minVal) / bucketSize);
+        buckets[idx].push(num);
+        steps.push([...arr]);
+        highlights.push([]);
+    }
+
+    const insertionSort = (bucket) => {
+        for (let i = 1; i < bucket.length; i++) {
+            let key = bucket[i];
+            let j = i - 1;
+            while (j >= 0 && bucket[j] > key) {
+                bucket[j + 1] = bucket[j];
+                j--;
+            }
+            bucket[j + 1] = key;
+        }
+        return bucket;
+    };
+
+    let index = 0;
+    for (let bucketIdx = 0; bucketIdx < bucketCount; bucketIdx++) {
+        if (buckets[bucketIdx].length > 0) {
+            const sortedBucket = insertionSort(buckets[bucketIdx]);
+            for (let num of sortedBucket) {
+                arr[index] = num;
+                steps.push([...arr]);
+                highlights.push([index]);
+                index++;
+            }
+        }
+    }
+
+    return { steps, highlights };
+};
+
+const pigeonholeSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const minVal = Math.min(...arr);
+    const maxVal = Math.max(...arr);
+    const size = maxVal - minVal + 1;
+    const holes = new Array(size).fill(0);
+
+    for (let num of arr) {
+        holes[num - minVal]++;
+        steps.push([...arr]);
+        highlights.push([]);
+    }
+
+    let index = 0;
+    for (let i = 0; i < size; i++) {
+        while (holes[i] > 0) {
+            arr[index] = i + minVal;
+            steps.push([...arr]);
+            highlights.push([index]);
+            index++;
+            holes[i]--;
+        }
+    }
+
+    return { steps, highlights };
+};
+
+const gnomeSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+
+    steps.push([...arr]);
+    highlights.push([]);
+
+    let pos = 0;
+    while (pos < arr.length) {
+        if (pos === 0 || arr[pos] >= arr[pos - 1]) {
+            steps.push([...arr]);
+            highlights.push([pos]);
+            pos++;
+        } else {
+            [arr[pos], arr[pos - 1]] = [arr[pos - 1], arr[pos]];
+            steps.push([...arr]);
+            highlights.push([pos, pos - 1]);
+            pos--;
+        }
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const bogoSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const isSorted = (array) => {
+        for (let i = 1; i < array.length; i++) {
+            if (array[i] < array[i - 1]) return false;
+        }
+        return true;
+    };
+
+    const shuffle = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            if (i !== j) {
+                [array[i], array[j]] = [array[j], array[i]];
+                steps.push([...array]);
+                highlights.push([i, j]);
+            }
+        }
+    };
+
+    let attempts = 0;
+    const maxAttempts = 10000;
+    
+    while (!isSorted(arr) && attempts < maxAttempts) {
+        shuffle(arr);
+        attempts++;
+    }
+
+    if (attempts === maxAttempts) {
+        console.warn("Bogo sort reached max attempts");
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const cocktailSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+
+    steps.push([...arr]);
+    highlights.push([]);
+
+    let start = 0;
+    let end = arr.length - 1;
+    let swapped = true;
+
+    while (swapped) {
+        swapped = false;
+
+        for (let i = start; i < end; i++) {
+            if (arr[i] > arr[i + 1]) {
+                [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+                swapped = true;
+            } else {
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+            }
+        }
+        
+        if (!swapped) break;
+        
+        swapped = false;
+        end--;
+
+        for (let i = end - 1; i >= start; i--) {
+            if (arr[i] > arr[i + 1]) {
+                [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+                swapped = true;
+            } else {
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+            }
+        }
+        start++;
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const oddEvenSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+
+    steps.push([...arr]);
+    highlights.push([]);
+
+    let sorted = false;
+    const n = arr.length;
+
+    while (!sorted) {
+        sorted = true;
+
+        for (let i = 1; i < n - 1; i += 2) {
+            if (arr[i] > arr[i + 1]) {
+                [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+                sorted = false;
+            } else {
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+            }
+        }
+
+        for (let i = 0; i < n - 1; i += 2) {
+            if (arr[i] > arr[i + 1]) {
+                [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+                sorted = false;
+            } else {
+                steps.push([...arr]);
+                highlights.push([i, i + 1]);
+            }
+        }
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const waveSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+
+    steps.push([...arr]);
+    highlights.push([]);
+
+    let gap = arr.length;
+    let swapped = true;
+    const shrinkFactor = 1.3;
+
+    while (gap > 1 || swapped) {
+        gap = Math.max(1, Math.floor(gap / shrinkFactor));
+        swapped = false;
+        
+        for (let i = 0; i + gap < arr.length; i++) {
+            if (arr[i] > arr[i + gap]) {
+                [arr[i], arr[i + gap]] = [arr[i + gap], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, i + gap]);
+                swapped = true;
+            } else {
+                steps.push([...arr]);
+                highlights.push([i, i + gap]);
+            }
+        }
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+const timSort = (indices, minRun = 32) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const n = arr.length;
+
+    const insertionSort = (left, right) => {
+        for (let i = left + 1; i <= right; i++) {
+            let temp = arr[i];
+            let j = i - 1;
+            
+            steps.push([...arr]);
+            highlights.push([i, j + 1]);
+            
+            while (j >= left && arr[j] > temp) {
+                arr[j + 1] = arr[j];
+                steps.push([...arr]);
+                highlights.push([j, j + 1]);
+                j--;
+            }
+            
+            if (arr[j + 1] !== temp) {
+                arr[j + 1] = temp;
+                steps.push([...arr]);
+                highlights.push([j + 1]);
+            }
+        }
+    };
+
+    const merge = (l, m, r) => {
+        const leftArr = arr.slice(l, m + 1);
+        const rightArr = arr.slice(m + 1, r + 1);
+
+        let i = 0, j = 0, k = l;
+
+        while (i < leftArr.length && j < rightArr.length) {
+            if (leftArr[i] <= rightArr[j]) {
+                arr[k] = leftArr[i];
+                i++;
+            } else {
+                arr[k] = rightArr[j];
+                j++;
+            }
+            steps.push([...arr]);
+            highlights.push([k]);
+            k++;
+        }
+
+        while (i < leftArr.length) {
+            arr[k] = leftArr[i];
+            steps.push([...arr]);
+            highlights.push([k]);
+            i++;
+            k++;
+        }
+
+        while (j < rightArr.length) {
+            arr[k] = rightArr[j];
+            steps.push([...arr]);
+            highlights.push([k]);
+            j++;
+            k++;
+        }
+    };
+
+    for (let i = 0; i < n; i += minRun) {
+        insertionSort(i, Math.min(i + minRun - 1, n - 1));
+    }
+
+    for (let size = minRun; size < n; size *= 2) {
+        for (let left = 0; left < n; left += 2 * size) {
+            const mid = Math.min(left + size - 1, n - 1);
+            const right = Math.min(left + 2 * size - 1, n - 1);
+            if (mid < right) {
+                merge(left, mid, right);
+            }
+        }
+    }
+
+    steps.push([...arr]);
+    highlights.push([]);
+    
+    return { steps, highlights };
+};
+
+
   const executeCustomAlgorithm = (indices) => {
     try {
       const func = new Function('arr', customAlgorithm);
@@ -525,6 +1068,30 @@ const SortVisualizer = () => {
       result = quickSort(shuffled);
     } else if (sortAlgorithm === 'merge') {
       result = mergeSort(shuffled);
+    } else if (sortAlgorithm === 'heap') {
+      result = heapSort(shuffled);
+    } else if (sortAlgorithm === 'selection') {
+      result = selectionSort(shuffled);
+    } else if (sortAlgorithm === 'gnome') {
+      result = gnomeSort(shuffled);
+    } else if (sortAlgorithm === 'cocktail') {
+      result = cocktailSort(shuffled);
+    } else if (sortAlgorithm === 'oddEven') {
+      result = oddEvenSort(shuffled);
+    } else if (sortAlgorithm === 'shell') {
+      result = shellSort(shuffled);
+    } else if (sortAlgorithm === 'wave') {
+      result = waveSort(shuffled);
+    } else if (sortAlgorithm === 'pigeonhole') {
+      result = pigeonholeSort(shuffled);
+    } else if (sortAlgorithm === 'bucket') {
+      result = bucketSort(shuffled);
+    } else if (sortAlgorithm === 'counting') {
+      result = countingSort(shuffled);
+    } else if (sortAlgorithm === 'tim') {
+      result = timSort(shuffled);
+    } else if (sortAlgorithm === 'bogo') {
+      result = bogoSort(shuffled);
     } else if (sortAlgorithm === 'radix') {
       result = radixSort(shuffled);
     } else if (sortAlgorithm === 'insertion') {
@@ -691,7 +1258,7 @@ const SortVisualizer = () => {
             
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">切片数量: {sliceCount}</label>
-              <input type="range" min="5" max="200" value={sliceCount} onChange={(e) => setSliceCount(Number(e.target.value))} className="w-full" />
+              <input type="range" min="5" max="400" value={sliceCount} onChange={(e) => setSliceCount(Number(e.target.value))} className="w-full" />
             </div>
             
             <div>
@@ -796,11 +1363,23 @@ const SortVisualizer = () => {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">排序算法</label>
             <select value={sortAlgorithm} onChange={(e) => setSortAlgorithm(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-              <option value="bubble">冒泡排序</option>
-              <option value="quick">快速排序</option>
-              <option value="merge">归并排序</option>
+              <option value="wave">摆动排序</option>
               <option value="insertion">插入排序</option>
+              <option value="gnome">地精排序</option>
+              <option value="heap">堆排序</option>
+              <option value="pigeonhole">鸽巢排序</option>
+              <option value="merge">归并排序</option>
+              <option value="bogo">猴子排序</option>
+              <option value="oddEven">奇偶排序</option>
+              <option value="counting">计数排序</option>
               <option value="radix">基数排序</option>
+              <option value="cocktail">鸡尾酒排序</option>
+              <option value="quick">快速排序</option>
+              <option value="bubble">冒泡排序</option>
+              <option value="tim">Tim排序</option>
+              <option value="bucket">桶排序</option>
+              <option value="shell">希尔排序</option>
+              <option value="selection">选择排序</option>
               <option value="custom">自定义算法</option>
             </select>
           </div>
