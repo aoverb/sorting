@@ -178,6 +178,7 @@ const SortVisualizer = () => {
   const imageRef = useRef(null);
   const audioPlaybackRef = useRef({ isPlaying: false });
   const containerRef = useRef(null);
+  const animationContainerRef = useRef(null);
   const finalAudioSourcesRef = useRef([]);
 
   useEffect(() => {
@@ -190,16 +191,38 @@ const SortVisualizer = () => {
   }, []);
 
   useEffect(() => {
-    if (containerRef.current) {
-      const updateSize = () => {
+    const updateSize = () => {
+      // 获取主界面容器大小
+      if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         setContainerSize({ width: rect.width, height: rect.height });
-      };
-      updateSize();
-      window.addEventListener('resize', updateSize);
-      return () => window.removeEventListener('resize', updateSize);
-    }
+      }
+      
+      // 获取动画弹窗容器大小
+      if (animationContainerRef.current) {
+        const rect = animationContainerRef.current.getBoundingClientRect();
+        setContainerSize({ width: rect.width, height: rect.height });
+      }
+    };
+    
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
   }, []);
+  
+  // 当动画弹窗打开时，更新容器大小
+  useEffect(() => {
+    if (!isAniModalClose) {
+      // 延迟一小段时间以确保DOM已更新
+      const timer = setTimeout(() => {
+        if (animationContainerRef.current) {
+          const rect = animationContainerRef.current.getBoundingClientRect();
+          setContainerSize({ width: rect.width, height: rect.height });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isAniModalClose]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -250,8 +273,9 @@ const SortVisualizer = () => {
     const cropW = (cropArea.width / 100) * img.width;
     const cropH = (cropArea.height / 100) * img.height;
     
-    const maxWidth = containerSize.width - 40;
-    const maxHeight = containerSize.height - 40;
+    // 为弹窗模式提供更多空间
+    const maxWidth = containerSize.width - 80;
+    const maxHeight = containerSize.height - 120;
     
     let displayWidth = cropW;
     let displayHeight = cropH;
@@ -1642,7 +1666,10 @@ const SortVisualizer = () => {
             </div>
           </div>
         )}
-        <div className="w-full h-full flex items-center justify-center">
+        <div
+          ref={animationContainerRef}
+          className="w-full h-full flex items-center justify-center"
+        >
           {renderSlices()}
         </div>
       </AnimationModal>
