@@ -27,7 +27,7 @@ const translations = {
     animationScale: "Animation Scale",
     sortAlgorithm: "Sort Algorithm",
     customAlgorithm: "Custom Algorithm Code",
-    startSort: "Start Sorting",
+    prepareSort: "Start Sorting",
     pause: "Pause",
     resume: "Resume",
     playFullAudio: "Play Full Audio",
@@ -92,7 +92,7 @@ const translations = {
     animationScale: "动画缩放",
     sortAlgorithm: "排序算法",
     customAlgorithm: "自定义算法代码",
-    startSort: "开始排序",
+    prepareSort: "开始排序",
     pause: "暂停",
     resume: "继续",
     playFullAudio: "播放完整音频",
@@ -274,8 +274,8 @@ const SortVisualizer = () => {
     const cropH = (cropArea.height / 100) * img.height;
     
     // 为弹窗模式提供更多空间
-    const maxWidth = containerSize.width - 80;
-    const maxHeight = containerSize.height - 120;
+    const maxWidth = containerSize.width;
+    const maxHeight = containerSize.height;
     
     let displayWidth = cropW;
     let displayHeight = cropH;
@@ -1188,10 +1188,11 @@ const SortVisualizer = () => {
 
   const showAniModal = () => {
     setIsAniModalClose(false);
+    prepareSort();
   }
 
 
-  const startSort = () => {
+  const prepareSort = () => {
     if (!isImageLoaded) {
       alert(t.alerts.uploadImageFirst);
       return;
@@ -1336,7 +1337,7 @@ const SortVisualizer = () => {
     const scale = animationScale / 100;
     
     return (
-      <div style={containerStyle} className="w-full h-full relative">
+      <div style={containerStyle} className="relative">
         {currentIndices.map((idx, position) => {
           const slice = imageSlicesCache[idx];
           if (!slice) return null;
@@ -1376,10 +1377,9 @@ const SortVisualizer = () => {
         
         {/* 水印 */}
         <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-80 hover:opacity-100 transition-opacity">
-          <p className="text-xl">
-            {t.algorithmOptions[sortAlgorithm]}
+          <p className="text-base md:text-xl lg:text-3xl">
+            http://Sorti.ng/
           </p>
-          http://Sorti.ng/
         </div>
       </div>
     );
@@ -1494,12 +1494,6 @@ const SortVisualizer = () => {
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sliceCount}: {sliceCount}</label>
               <input type="range" min="5" max="400" value={sliceCount} onChange={(e) => setSliceCount(Number(e.target.value))} className="w-full" />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sortSpeed}: {sortSpeed}</label>
-              <input type="range" min="1" max="200" value={sortSpeed} onChange={(e) => setSortSpeed(Number(e.target.value))} className="w-full" />
-              <p className="text-xs text-gray-500 mt-1">{t.speedDescription}</p>
             </div>
             
             <div>
@@ -1620,22 +1614,7 @@ const SortVisualizer = () => {
         <div className="flex justify-center gap-4 mb-8 flex-wrap">
           <button onClick={showAniModal} disabled={!image || isPlaying} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition">
             <Play className="w-5 h-5" />
-            {t.startSort}
-          </button>
-          
-          <button onClick={() => { setIsPlaying(!isPlaying); audioPlaybackRef.current.isPlaying = !isPlaying; }} disabled={sortStepsIndices.length === 0} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition">
-            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-            {isPlaying ? t.pause : t.resume}
-          </button>
-          
-          <button onClick={playFinalAudio} disabled={!isSorted || !audioBuffer || isPlayingFinalAudio} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition">
-            <Play className="w-5 h-5" />
-            {isPlayingFinalAudio ? (language === 'zh' ? '播放中...' : 'Playing...') : t.playFullAudio}
-          </button>
-          
-          <button onClick={handleReset} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 font-semibold shadow-lg transition">
-            <RotateCw className="w-5 h-5" />
-            {t.reset}
+            {t.prepareSort}
           </button>
         </div>
         
@@ -1646,32 +1625,18 @@ const SortVisualizer = () => {
         isOpen={!isAniModalClose}
         onClose={handleAniModalClose}
         algorithmName={t.algorithmOptions[sortAlgorithm]}
+        animationContainerRef={animationContainerRef}
+        t={t}
+        sortSpeed={sortSpeed}
+        setSortSpeed={setSortSpeed}
         isPlaying={isPlaying}
-        onStart={startSort}
+        onStart={prepareSort}
         onPause={handlePause}
         onResume={handlePlay}
         onReset={handleReset}
         onStop={handleStop}
       >
-          {sortStepsIndices.length > 0 && (
-          <div className="mb-6  w-full">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>{t.step}: {currentStep + 1} {t.of} {sortStepsIndices.length}</span>
-              <span className={isSorted ? 'text-green-600 font-bold' : ''}>
-                {isSorted ? t.sortingComplete : t.sortingInProgress}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300" style={{ width: ((currentStep + 1) / sortStepsIndices.length) * 100 + '%' }} />
-            </div>
-          </div>
-        )}
-        <div
-          ref={animationContainerRef}
-          className="w-full h-full flex items-center justify-center"
-        >
           {renderSlices()}
-        </div>
       </AnimationModal>
     </div>
   );

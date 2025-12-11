@@ -6,6 +6,10 @@ const AnimationModal = ({
   onClose,
   algorithmName,
   children,
+  t,
+  animationContainerRef,
+  sortSpeed,
+  setSortSpeed,
   isPlaying,
   onStart,
   onPause,
@@ -46,10 +50,10 @@ const AnimationModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={handleClickOutside}>
-      <div ref={modalRef} className="relative w-full h-full bg-white flex flex-col">
+      <div ref={modalRef} className="relative p1 w-full h-full bg-white flex flex-col">
         {/* Title Bar */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">{algorithmName}</h2>
+        <div className="flex justify-between items-center border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">&nbsp;{algorithmName}</h2>
           <button
             onClick={() => {
               onClose();
@@ -62,12 +66,12 @@ const AnimationModal = ({
         </div>
 
         {/* Animation Area */}
-        <div className="flex-grow overflow-auto p-4 flex flex-col items-center justify-center">
+        <div ref={animationContainerRef} className="flex-grow overflow-auto p-4 flex flex-col items-center justify-center">
           {children}
         </div>
 
         {/* Control Buttons */}
-        <div className="flex justify-center p-4 border-t border-gray-200 space-x-4">
+        <div className="flex justify-center p-1 border-t border-gray-200 space-x-4">
           <button
             onClick={onStart}
             className={
@@ -101,6 +105,11 @@ const AnimationModal = ({
             <Square className="w-5 h-5" />
             <span className="sr-only">Stop</span>
           </button>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sortSpeed}: {sortSpeed}</label>
+            <input type="range" min="1" max="200" value={sortSpeed} onChange={(e) => setSortSpeed(Number(e.target.value))} className="w-full" />
+          </div>
         </div>
       </div>
     </div>
