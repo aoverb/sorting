@@ -46,10 +46,8 @@ const AnimationModal = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={handleClickOutside}>
+    <div style={{display : isOpen ? `flex` : `none`}} className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={handleClickOutside}>
       <div ref={modalRef} className="relative p1 w-full h-full bg-white flex flex-col">
         {/* Title Bar */}
         <div className="flex justify-between items-center border-b border-gray-200">
@@ -66,7 +64,7 @@ const AnimationModal = ({
         </div>
 
         {/* Animation Area */}
-        <div ref={animationContainerRef} className="flex-grow overflow-auto p-4 flex flex-col items-center justify-center">
+        <div ref={animationContainerRef} className="flex-grow overflow-hidden p-4 flex flex-col items-center justify-center">
           {children}
         </div>
 

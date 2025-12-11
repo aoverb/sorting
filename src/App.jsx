@@ -7,6 +7,7 @@ const translations = {
   en: {
     title: "Sorti.ng - Algorithm Visualization",
     subtitle: "Visualize and Audiolize Sorting Algorithms",
+    github: "Source code - Star it if you like it!",
     uploadImage: "Upload Image",
     uploadAudio: "Upload Audio",
     sliceDirection: "Slice Direction",
@@ -72,6 +73,7 @@ const translations = {
   zh: {
     title: "Sorti.ng - 算法可视化工具",
     subtitle: "排序算法可视化与音频化",
+    github: "源码 - 喜欢的话可以点颗星星！",
     uploadImage: "上传图片",
     uploadAudio: "上传音频",
     sliceDirection: "切片方向",
@@ -158,7 +160,6 @@ const SortVisualizer = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSorted, setIsSorted] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
   const [isPlayingFinalAudio, setIsPlayingFinalAudio] = useState(false);
   
   const [showHighlight, setShowHighlight] = useState(true);
@@ -189,40 +190,6 @@ const SortVisualizer = () => {
       }
     };
   }, []);
-
-  useEffect(() => {
-    const updateSize = () => {
-      // 获取主界面容器大小
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerSize({ width: rect.width, height: rect.height });
-      }
-      
-      // 获取动画弹窗容器大小
-      if (animationContainerRef.current) {
-        const rect = animationContainerRef.current.getBoundingClientRect();
-        setContainerSize({ width: rect.width, height: rect.height });
-      }
-    };
-    
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
-  
-  // 当动画弹窗打开时，更新容器大小
-  useEffect(() => {
-    if (!isAniModalClose) {
-      // 延迟一小段时间以确保DOM已更新
-      const timer = setTimeout(() => {
-        if (animationContainerRef.current) {
-          const rect = animationContainerRef.current.getBoundingClientRect();
-          setContainerSize({ width: rect.width, height: rect.height });
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isAniModalClose]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -263,7 +230,6 @@ const SortVisualizer = () => {
 
   const createImageSlices = () => {
     if (!imageRef.current || !isImageLoaded) return [];
-    
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = imageRef.current;
@@ -273,9 +239,9 @@ const SortVisualizer = () => {
     const cropW = (cropArea.width / 100) * img.width;
     const cropH = (cropArea.height / 100) * img.height;
     
-    // 为弹窗模式提供更多空间
-    const maxWidth = containerSize.width;
-    const maxHeight = containerSize.height;
+    const rect = animationContainerRef.current.getBoundingClientRect();
+    const maxWidth = rect.width;
+    const maxHeight = rect.height;
     
     let displayWidth = cropW;
     let displayHeight = cropH;
@@ -1188,7 +1154,9 @@ const SortVisualizer = () => {
 
   const showAniModal = () => {
     setIsAniModalClose(false);
-    prepareSort();
+    const timer = setTimeout(() => {
+      prepareSort();}, 100);
+    return () => clearTimeout(timer);
   }
 
 
@@ -1616,6 +1584,10 @@ const SortVisualizer = () => {
             <Play className="w-5 h-5" />
             {t.prepareSort}
           </button>
+        </div>
+
+        <div className="flex justify-between items-center p1 mb-1">
+            <a className="text-gray-400 mt-1" href="https://github.com/aoverb/sorting">{t.github}</a>
         </div>
         
       </div>
