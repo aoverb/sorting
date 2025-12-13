@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCw, Square, X } from 'lucide-react';
+import SpeedInput from './SpeedInput';
 
 const AnimationModal = ({
   isOpen,
@@ -105,7 +106,9 @@ const AnimationModal = ({
           </button>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sortSpeed}: {sortSpeed}</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {t.sortSpeed}: <SpeedInput speed={sortSpeed} onSpeedChange={setSortSpeed} title={t.clickToEdit} />
+            </label>
             <input type="range" min="1" max="200" value={sortSpeed} onChange={(e) => setSortSpeed(Number(e.target.value))} className="w-full" />
           </div>
         </div>
