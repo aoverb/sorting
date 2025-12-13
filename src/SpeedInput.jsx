@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function SpeedInput({ speed, onSpeedChange }) {
+export default function SpeedInput({ speed, onSpeedChange, title }) {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef(null);
 
@@ -8,6 +8,7 @@ export default function SpeedInput({ speed, onSpeedChange }) {
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
+      inputRef.current.select();
     }
   }, [isEditing]);
 
@@ -16,7 +17,7 @@ export default function SpeedInput({ speed, onSpeedChange }) {
     
     // 如果输入为空，设为50
     if (val === '') {
-      onSpeedChange(0);
+      onSpeedChange(50);
       return;
     }
 
@@ -45,7 +46,7 @@ export default function SpeedInput({ speed, onSpeedChange }) {
   }
 
   return (
-    <span onClick={() => setIsEditing(true)} className="cursor-pointer hover:text-blue-600 transition-colors inline-block w-12 text-center h-5 leading-5" title="点击修改速度">
+    <span onClick={() => setIsEditing(true)} className="cursor-pointer hover:text-blue-600 transition-colors inline-block w-12 text-center h-5 leading-5" title={title}>
       {speed}
     </span>
   );

@@ -107,7 +107,7 @@ const AnimationModal = ({
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              {t.sortSpeed}: <SpeedInput speed={sortSpeed} onSpeedChange={setSortSpeed} />
+              {t.sortSpeed}: <SpeedInput speed={sortSpeed} onSpeedChange={setSortSpeed} title={t.clickToEdit} />
             </label>
             <input type="range" min="1" max="200" value={sortSpeed} onChange={(e) => setSortSpeed(Number(e.target.value))} className="w-full" />
           </div>
