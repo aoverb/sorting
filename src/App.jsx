@@ -267,14 +267,14 @@ const SortVisualizer = () => {
     const sliceArray = [];
     
     if (sliceDirection === 'vertical') {
-      const sliceWidth = Math.floor(cropW / sliceCount);
       const displaySliceWidth = displayWidth / sliceCount;
       canvas.width = sliceWidth;
       canvas.height = cropH;
       
       for (let i = 0; i < sliceCount; i++) {
+        const thisSliceWidth = Math.floor((i + 1) * cropW / sliceCount) - Math.floor(i * cropW / sliceCount);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, cropX + i * sliceWidth, cropY, sliceWidth, cropH, 0, 0, sliceWidth, cropH);
+        ctx.drawImage(img, cropX + Math.floor(i * cropW / sliceCount), cropY, thisSliceWidth, cropH, 0, 0, thisSliceWidth, cropH);
         sliceArray.push({
           dataUrl: canvas.toDataURL('image/png'),
           displayWidth: displaySliceWidth,
@@ -282,14 +282,14 @@ const SortVisualizer = () => {
         });
       }
     } else {
-      const sliceHeight = Math.floor(cropH / sliceCount);
       const displaySliceHeight = displayHeight / sliceCount;
       canvas.width = cropW;
       canvas.height = sliceHeight;
       
       for (let i = 0; i < sliceCount; i++) {
+        const thisSliceHeight = Math.floor((i + 1) * cropH / sliceCount) - Math.floor(i * cropH / sliceCount);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, cropX, cropY + i * sliceHeight, cropW, sliceHeight, 0, 0, cropW, sliceHeight);
+        ctx.drawImage(img, cropX, cropY + Math.floor(i * cropH / sliceCount), cropW, thisSliceHeight, 0, 0, cropW, thisSliceHeight);
         sliceArray.push({
           dataUrl: canvas.toDataURL('image/png'),
           displayWidth: displayWidth,
@@ -311,8 +311,8 @@ const SortVisualizer = () => {
     const sliceArray = [];
     for (let i = 0; i < sliceCount; i++) {
       sliceArray.push({
-        start: startTime + i * sliceDuration,
-        duration: sliceDuration
+        start: startTime + Math.floor(i * duration / sliceCount),
+        duration: Math.floor((i + 1) * duration / sliceCount) - Math.floor(i * duration / sliceCount)
       });
     }
     return sliceArray;
