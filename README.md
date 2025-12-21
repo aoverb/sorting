@@ -1,16 +1,23 @@
-# React + Vite
+# 带声音排序可视化 / Sort Visualization with sound
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+这是一个可以播放音频的排序可视化网站，支持多种排序算法和自定义算法。
 
-Currently, two official plugins are available:
+This is a website for visualizing sorting algorithms with audio support. It supports various sorting algorithms, including custom ones.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 使用方法 / Guide to use
 
-## React Compiler
+将图片和音频上传好后，选择切片数量和排序算法，开始排序即可。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+After uploading the image and the audio, select the amount of slices and the sorting algorithm, and press the start key.
 
-## Expanding the ESLint configuration
+## 自定义排序算法 / Custom sorting algorithm
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+如果要使用自己的排序算法那么请选择“自定义排序”按钮并使用 JavaScript 写如下格式的函数：
+
+If you want to use you custom sorting algorithm, select "custom sorting" and write a JavaScript function of this format:
+```js
+(arr) -> result
+```
+其中 `result` 需要有两个部件：`result.steps` 是每一步后的数组，`result.highlights` 是每一步需要高亮的下标。
+
+Where `result` has two components: `result.steps` being the array after each step, and `result.highlights` being the indexes needed to highlight after each step.
