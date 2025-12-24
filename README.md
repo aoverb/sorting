@@ -18,6 +18,18 @@ If you want to use you custom sorting algorithm, select "custom sorting" and wri
 ```js
 (arr) -> result
 ```
-其中 `result` 需要有两个部件：`result.steps` 是每一步后的数组，`result.highlights` 是每一步需要高亮的下标。
+其中 `result` 是每一步后的数组。这个模式下暂时不支持高亮元素。
 
-Where `result` has two components: `result.steps` being the array after each step, and `result.highlights` being the indexes needed to highlight after each step.
+Where `result` is the array after each step. Currently this mode doesn't support highlighting elements.
+
+## 自定义数组打乱方式 / Custom shuffle
+
+如果要实现自定义数组打乱那么请选择“自定义打乱”按钮并使用 JavaScript 写如下格式的函数：
+
+If you want to use you custom shuffling algorithm, select "custom shuffle" and write a JavaScript function of this format:
+```js
+(n) -> indices
+```
+其中 `indices` 是打乱后的排列，应当恰好覆盖 $[0,n-1]$ 的每个元素一次。
+
+Where `indices` is the shuffled array, and it should cover every element from $[0,n-1]$ exactly once.
