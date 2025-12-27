@@ -538,7 +538,16 @@ const SortVisualizer = () => {
     };
 
     const sort = (left, right) => {
-      if (left < right) {
+      if (right - left == 1) return;
+      else if (right - left == 2) {
+        if (arr[left] > arr[left + 1]) {
+          [arr[left], arr[left + 1]] = [arr[left + 1], arr[left]];
+          steps.push([...arr]);
+          highlights.push([left, left + 1]);
+        }
+        return;
+      }
+      else {
         const mid = Math.floor((left + right) / 2);
         sort(left, mid);
         sort(mid, right);
