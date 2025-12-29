@@ -1562,10 +1562,10 @@ const SortVisualizer = () => {
     } else if (shuffleAlgorithm === 'descending') {
         shuffled.reverse();
     } else if (shuffleAlgorithm === 'pipeorgan') {
-        for (let i = 0; i < sliceCount / 2; i++) {
+        for (let i = 0; i < Math.floor(sliceCount / 2); i++) {
             shuffled[i] = 2 * i + 1;
         }
-        for (let i = sliceCount / 2; i < sliceCount; i++) {
+        for (let i = Math.floor(sliceCount / 2); i < sliceCount; i++) {
             shuffled[i] = 2 * (sliceCount - i - 1);
         }
     } else {
