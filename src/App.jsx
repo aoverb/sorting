@@ -56,7 +56,9 @@ const translations = {
       counting: "Counting Sort",
       radix: "Radix Sort",
       cocktail: "Cocktail Sort",
-      quick: "Quick Sort",
+      quickLL: "Quick Sort (LL pointers)",
+      quickLR: "Quick Sort (LR pointers)",
+      pdq: "PDQ Sort",
       bubble: "Bubble Sort",
       tim: "Tim Sort",
       bucket: "Bucket Sort",
@@ -64,6 +66,14 @@ const translations = {
       selection: "Selection Sort",
       custom: "Custom Algorithm"
     },
+    shuffleOptions: {
+        random: "Random Shuffle",
+        ascending: "Ascending Order",
+        descending: "Descending Order",
+        pipeorgan: "Pipe Organ Shuffle",
+        custom: "Custom Shuffle"
+    },
+    shuffleAlgorithmPlaceholder: "const array = Array.from({ length: n }, (_, i) => i);\n// Your shuffle logic\nreturn array;",
     alerts: {
       uploadImageFirst: "Please upload an image first",
       imageSliceFailed: "Failed to create image slices",
@@ -123,14 +133,24 @@ const translations = {
       counting: "计数排序",
       radix: "基数排序",
       cocktail: "鸡尾酒排序",
-      quick: "快速排序",
+      quickLL: "快速排序（双左指针）",
+      quickLR: "快速排序（左右指针）",
+      pdq: "PDQ Sort",
       bubble: "冒泡排序",
-      tim: "Tim排序",
+      tim: "Timsort",
       bucket: "桶排序",
       shell: "希尔排序",
       selection: "选择排序",
       custom: "自定义算法"
     },
+    shuffleOptions: {
+        random: "随机打乱",
+        ascending: "升序排列",
+        descending: "降序排列",
+        pipeorgan: "风琴式排列",
+        custom: "自定义打乱"
+    },
+    shuffleAlgorithmPlaceholder: "const array = Array.from({ length: n }, (_, i) => i);\n// 你的打乱逻辑\nreturn array;",
     alerts: {
       uploadImageFirst: "请先上传图片",
       imageSliceFailed: "图片切片创建失败",
@@ -148,6 +168,8 @@ const SortVisualizer = () => {
   const [sliceCount, setSliceCount] = useState(20);
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 100, height: 100 });
   const [audioRange, setAudioRange] = useState({ start: 0, end: 100 });
+  const [shuffleAlgorithm, setShuffleAlgorithm] = useState('random');
+  const [customShuffle, setCustomShuffle] = useState('');
   const [sortAlgorithm, setSortAlgorithm] = useState('bubble');
   const [customAlgorithm, setCustomAlgorithm] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -267,14 +289,14 @@ const SortVisualizer = () => {
     const sliceArray = [];
     
     if (sliceDirection === 'vertical') {
-      const sliceWidth = Math.floor(cropW / sliceCount);
       const displaySliceWidth = displayWidth / sliceCount;
-      canvas.width = sliceWidth;
       canvas.height = cropH;
       
       for (let i = 0; i < sliceCount; i++) {
+        const thisSliceWidth = Math.floor((i + 1) * cropW / sliceCount) - Math.floor(i * cropW / sliceCount);
+        canvas.width = thisSliceWidth;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, cropX + i * sliceWidth, cropY, sliceWidth, cropH, 0, 0, sliceWidth, cropH);
+        ctx.drawImage(img, cropX + Math.floor(i * cropW / sliceCount), cropY, thisSliceWidth, cropH, 0, 0, thisSliceWidth, cropH);
         sliceArray.push({
           dataUrl: canvas.toDataURL('image/png'),
           displayWidth: displaySliceWidth,
@@ -282,14 +304,14 @@ const SortVisualizer = () => {
         });
       }
     } else {
-      const sliceHeight = Math.floor(cropH / sliceCount);
       const displaySliceHeight = displayHeight / sliceCount;
       canvas.width = cropW;
-      canvas.height = sliceHeight;
       
       for (let i = 0; i < sliceCount; i++) {
+        const thisSliceHeight = Math.floor((i + 1) * cropH / sliceCount) - Math.floor(i * cropH / sliceCount);
+        canvas.height = thisSliceHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, cropX, cropY + i * sliceHeight, cropW, sliceHeight, 0, 0, cropW, sliceHeight);
+        ctx.drawImage(img, cropX, cropY + Math.floor(i * cropH / sliceCount), cropW, thisSliceHeight, 0, 0, cropW, thisSliceHeight);
         sliceArray.push({
           dataUrl: canvas.toDataURL('image/png'),
           displayWidth: displayWidth,
@@ -311,7 +333,7 @@ const SortVisualizer = () => {
     const sliceArray = [];
     for (let i = 0; i < sliceCount; i++) {
       sliceArray.push({
-        start: startTime + i * sliceDuration,
+        start: startTime + i * duration / sliceCount,
         duration: sliceDuration
       });
     }
@@ -480,56 +502,64 @@ const SortVisualizer = () => {
     steps.push([...arr]);
     highlights.push([]);
 
-    const merge = (left, mid, right) => {
-      const leftArr = arr.slice(left, mid + 1);
-      const rightArr = arr.slice(mid + 1, right + 1);
+    const merge = (l, m, r) => {
+        const leftArr = arr.slice(l, m);
 
-      let i = 0, j = 0, k = left;
+        let i = 0, j = m, k = l;
 
-      while (i < leftArr.length && j < rightArr.length) {
-        if (leftArr[i] <= rightArr[j]) {
-          arr[k] = leftArr[i];
-          i++;
-        } else {
-          arr[k] = rightArr[j];
-          j++;
+        while (i < leftArr.length && j < r) {
+            if (leftArr[i] <= rightArr[j]) {
+                arr[k] = leftArr[i];
+                i++;
+            } else {
+                arr[k] = arr[j];
+                j++;
+            }
+            steps.push([...arr]);
+            highlights.push([k]);
+            k++;
         }
-        steps.push([...arr]);
-        highlights.push([k]);
-        k++;
-      }
 
-      while (i < leftArr.length) {
-        arr[k] = leftArr[i];
-        steps.push([...arr]);
-        highlights.push([k]);
-        i++;
-        k++;
-      }
+        while (i < leftArr.length) {
+            arr[k] = leftArr[i];
+            steps.push([...arr]);
+            highlights.push([k]);
+            i++;
+            k++;
+        }
 
-      while (j < rightArr.length) {
-        arr[k] = rightArr[j];
-        steps.push([...arr]);
-        highlights.push([k]);
-        j++;
-        k++;
-      }
+        while (j < r && j > k) {
+            arr[k] = arr[j];
+            steps.push([...arr]);
+            highlights.push([k]);
+            j++;
+            k++;
+        }
     };
 
     const sort = (left, right) => {
-      if (left < right) {
+      if (right - left == 1) return;
+      else if (right - left == 2) {
+        if (arr[left] > arr[left + 1]) {
+          [arr[left], arr[left + 1]] = [arr[left + 1], arr[left]];
+          steps.push([...arr]);
+          highlights.push([left, left + 1]);
+        }
+        return;
+      }
+      else {
         const mid = Math.floor((left + right) / 2);
         sort(left, mid);
-        sort(mid + 1, right);
+        sort(mid, right);
         merge(left, mid, right);
       }
     };
 
-    sort(0, arr.length - 1);
+    sort(0, arr.length);
     return { steps, highlights };
   };
 
-  const quickSort = (indices) => {
+  const quickSortLL = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -567,6 +597,259 @@ const SortVisualizer = () => {
     };
     
     sort(0, arr.length - 1);
+    return { steps, highlights };
+  };
+
+  const quickSortLR = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const median3 = (a, b, c) => {
+        const pivotArr = [a, b, c];
+        pivotArr.sort((a, b) => arr[a] - arr[b]);
+        return pivotArr[1];
+    }
+    
+    const partition = (low, high) => {
+      let p = median3(low, (low + high) / 2, high);
+      const pivot = arr[p];
+      let i = low;
+      let j = high;
+      while (true) {
+        while (i <= j && arr[i] <= pivot) { i = i + 1; }
+        while (i <= j && arr[j] >= pivot) { j = j - 1; }
+        if (i > j) { return j; }
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        steps.push([...arr]);
+        highlights.push([i, j]);
+        if (p == i) p = j;
+        else if (p == j) p = i;
+        i++;
+        j--;
+      }
+    };
+    
+    const sort = (low, high) => {
+      if (low < high) {
+        const pi = partition(low, high);
+        sort(low, pi - 1);
+        sort(pi + 1, high);
+      }
+    };
+    
+    sort(0, arr.length - 1);
+    return { steps, highlights };
+  };
+
+  const pdqSort = (indices) => {
+    const steps = [];
+    const highlights = [];
+    const arr = [...indices];
+    steps.push([...arr]);
+    highlights.push([]);
+
+    const insertionSort = (left, right) => {
+        for (let i = left + 1; i <= right; i++) {
+            let temp = arr[i];
+            let j = i - 1;
+            
+            steps.push([...arr]);
+            highlights.push([i, j + 1]);
+            
+            while (j >= left && arr[j] > temp) {
+                arr[j + 1] = arr[j];
+                steps.push([...arr]);
+                highlights.push([j, j + 1]);
+                j--;
+            }
+            
+            if (arr[j + 1] !== temp) {
+                arr[j + 1] = temp;
+                steps.push([...arr]);
+                highlights.push([j + 1]);
+            }
+        }
+    };
+
+    const merge = (l, m, r) => {
+        const leftArr = arr.slice(l, m);
+
+        let i = 0, j = m, k = l;
+
+        while (i < leftArr.length && j < r) {
+            if (leftArr[i] <= rightArr[j]) {
+                arr[k] = leftArr[i];
+                i++;
+            } else {
+                arr[k] = arr[j];
+                j++;
+            }
+            steps.push([...arr]);
+            highlights.push([k]);
+            k++;
+        }
+
+        while (i < leftArr.length) {
+            arr[k] = leftArr[i];
+            steps.push([...arr]);
+            highlights.push([k]);
+            i++;
+            k++;
+        }
+
+        while (j < r && j > k) {
+            arr[k] = arr[j];
+            steps.push([...arr]);
+            highlights.push([k]);
+            j++;
+            k++;
+        }
+    };
+
+    const median3 = (a, b, c) => {
+        const pivotArr = [a, b, c];
+        pivotArr.sort((a, b) => arr[a] - arr[b]);
+        return pivotArr[1];
+    }
+
+    const partition = (low, high) => {
+        let swapCount = 0;
+        let p = median3(low, (low + high) / 2, high - 1);
+        let i = low;
+        let j = high - 1;
+        const pivot = arr[p];
+        while (i <= j) {
+            while (arr[i] <= pivot) { i++; }
+            while (arr[j] >= pivot) { j--; }
+            if (i <= j) {
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, j]);
+                swapCount++;
+                if (p == i) p = j;
+                else if (p == j) p = i;
+                i++;
+                j--;
+            }
+        }
+        return [j, swapCount];
+    };
+
+    const heapify = (heapRoot, size, i) => {
+        let largest = i;
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+        if (left < size && arr[heapRoot + left] > arr[heapRoot + largest]) {
+            largest = left;
+        }
+        if (right < size && arr[heapRoot + right] > arr[heapRoot + largest]) {
+            largest = right;
+        }
+        if (largest !== i) {
+            [arr[heapRoot + i], arr[heapRoot + largest]] = [arr[heapRoot + largest], arr[heapRoot + i]];
+            steps.push([...arr]);
+            highlights.push([heapRoot + i, heapRoot + largest]);
+            heapify(heapRoot, size, largest);
+        }
+    };
+
+    const detectRun = (start) => {
+        if (arr[start] <= arr[start + 1]) {
+            let end = start + 1;
+            while (end + 1 < n && arr[end] <= arr[end + 1]) {
+                end++;
+            }
+            return end;
+        }
+        else {
+            let end = start + 1;
+            while (end + 1 < n && arr[end] >= arr[end + 1]) {
+                end++;
+            }
+            for (let i = start, j = end; i < j; i++, j--) {
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, j]);
+            }
+            return end;
+        }
+    };
+
+    const sort = (low, high, badAllowed) => {
+        if (high - low <= 32) {
+            insertionSort(low, high - 1);
+            return;
+        }
+        const runEnd = detectRun(low);
+        if (runEnd == high - 1) return;
+        if (runEnd >= low + (high - low) / 4) {
+            sort(runEnd + 1, high, badAllowed);
+            merge(low, runEnd + 1, high);
+            return;
+        }
+        const [pi, swapCount] = partition(low, high);
+        const l_size = pi - low;
+        const r_size = high - pi - 1;
+        if (swapCount <= 8) {
+            let insertCount = 0;
+            for (let i = low + 1; i < high; i++) {
+                const key = arr[i];
+                let j = i - 1;
+                while (j >= low && arr[j] > key) {
+                    arr[j + 1] = arr[j];
+                    steps.push([...arr]);
+                    highlights.push([j, j + 1]);
+                    j--;
+                    ++insertCount;
+                    if (insertCount > 48) break;
+                }
+                arr[j + 1] = key;
+                if (j + 1 !== i) {
+                    steps.push([...arr]);
+                    highlights.push([j + 1]);
+                }
+            }
+            if (insertCount <= 48) return;
+        }
+        if (l_size < r_size / 8 || r_size < l_size / 8) {
+            if (--badAllowed == 0) {
+                const size = high - low;
+                for (let i = Math.floor(size / 2) - 1; i >= 0; i--) {
+                    heapify(low, size, i);
+                }
+                for (let i = size - 1; i > 0; i--) {
+                    [arr[low], arr[low + i]] = [arr[low + i], arr[low]];
+                    steps.push([...arr]);
+                    highlights.push([low, low + i]);
+                    heapify(low, i, 0);
+                }
+                return;
+            }
+            if (l_size > 32) {
+                [arr[low], arr[low + l_size / 4]] = [arr[low + l_size / 4], arr[low]];
+                steps.push([...arr]);
+                highlights.push([low, low + l_size / 4]);
+                [arr[pi - 1], arr[pi - l_size / 4]] = [arr[pi - l_size / 4], arr[pi - 1]];
+                steps.push([...arr]);
+                highlights.push([pi - 1, pi - l_size / 4]);
+            }
+            if (r_size > 32) {
+                [arr[pi + 1], arr[pi + r_size / 4 + 1]] = [arr[pi + r_size / 4 + 1], arr[pi + 1]];
+                steps.push([...arr]);
+                highlights.push([pi + 1, pi + r_size / 4 + 1]);
+                [arr[high - 1], arr[high - r_size / 4]] = [arr[high - r_size / 4], arr[high - 1]];
+                steps.push([...arr]);
+                highlights.push([high - 1, high - r_size / 4]);
+            }
+        }
+        sort(low, pi, badAllowed);
+        sort(pi, high, badAllowed);
+    };
+
+    sort(0, arr.length, Math.floor(Math.log2(arr.length)));
     return { steps, highlights };
   };
 
@@ -1050,14 +1333,38 @@ const SortVisualizer = () => {
     return { steps, highlights };
   };
 
-  const timSort = (indices, minRun = 32) => {
+  const timSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
     steps.push([...arr]);
     highlights.push([]);
+    const minRun = indices.length / Math.pow(2, Math.floor(Math.log2(indices.length / 32)));
+    const runStack = [];
 
     const n = arr.length;
+
+    const detectRun = (start) => {
+        if (arr[start] <= arr[start + 1]) {
+            let end = start + 1;
+            while (end + 1 < n && arr[end] <= arr[end + 1]) {
+                end++;
+            }
+            return end;
+        }
+        else {
+            let end = start + 1;
+            while (end + 1 < n && arr[end] >= arr[end + 1]) {
+                end++;
+            }
+            for (let i = start, j = end; i < j; i++, j--) {
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+                steps.push([...arr]);
+                highlights.push([i, j]);
+            }
+            return end;
+        }
+    }
 
     const insertionSort = (left, right) => {
         for (let i = left + 1; i <= right; i++) {
@@ -1083,17 +1390,16 @@ const SortVisualizer = () => {
     };
 
     const merge = (l, m, r) => {
-        const leftArr = arr.slice(l, m + 1);
-        const rightArr = arr.slice(m + 1, r + 1);
+        const leftArr = arr.slice(l, m);
 
-        let i = 0, j = 0, k = l;
+        let i = 0, j = m, k = l;
 
-        while (i < leftArr.length && j < rightArr.length) {
+        while (i < leftArr.length && j < r) {
             if (leftArr[i] <= rightArr[j]) {
                 arr[k] = leftArr[i];
                 i++;
             } else {
-                arr[k] = rightArr[j];
+                arr[k] = arr[j];
                 j++;
             }
             steps.push([...arr]);
@@ -1109,8 +1415,8 @@ const SortVisualizer = () => {
             k++;
         }
 
-        while (j < rightArr.length) {
-            arr[k] = rightArr[j];
+        while (j < r && j > k) {
+            arr[k] = arr[j];
             steps.push([...arr]);
             highlights.push([k]);
             j++;
@@ -1118,24 +1424,89 @@ const SortVisualizer = () => {
         }
     };
 
-    for (let i = 0; i < n; i += minRun) {
-        insertionSort(i, Math.min(i + minRun - 1, n - 1));
-    }
-
-    for (let size = minRun; size < n; size *= 2) {
-        for (let left = 0; left < n; left += 2 * size) {
-            const mid = Math.min(left + size - 1, n - 1);
-            const right = Math.min(left + 2 * size - 1, n - 1);
-            if (mid < right) {
-                merge(left, mid, right);
-            }
+    for (let i = 0; i < n;) {
+        const runEnd = detectRun(i);
+        const runLength = runEnd - i + 1;
+        if (runLength < minRun) {
+            const forceEnd = Math.min(i + minRun - 1, n - 1);
+            insertionSort(i, forceEnd);
+            runStack.push([i, forceEnd]);
+            i = forceEnd + 1;
         }
+        else {
+            runStack.push([i, runEnd]);
+            i = runEnd + 1;
+        }
+        
+        while (true) {
+            let conditionSatisfied = true;
+            let m = runStack.length;
+            if (m >= 3) {
+                A = runStack[m - 3];
+                B = runStack[m - 2];
+                let C = runStack[m - 1];
+                if (A[1] - A[0] <= B[1] - B[0] + C[1] - C[0]) {
+                    conditionSatisfied = false;
+                    runStack.splice(m - 3, 3);
+                    if (A[1] - A[0] < C[1] - C[0]) {
+                        merge(A[0], B[0], B[1] + 1);
+                        runStack.push([A[0], B[1]]);
+                        runStack.push(C);
+                    } else {
+                        merge(B[0], C[0], C[1] + 1);
+                        runStack.push(A);
+                        runStack.push([B[0], C[1]]);
+                    }
+                }
+            }
+            m = runStack.length;
+            if (m >= 2) {
+                let A = runStack[m - 2];
+                let B = runStack[m - 1];
+                if (A[1] - A[0] <= B[1] - B[0]) {
+                    conditionSatisfied = false;
+                    runStack.splice(m - 2, 2);
+                    merge(A[0], B[0], B[1] + 1);
+                    runStack.push([A[0], B[1]]);
+                }
+            }
+            
+            if (conditionSatisfied) break;
+        }
+    }
+    while (runStack.length > 1) {
+        const m = runStack.length;
+        const A = runStack[m - 2];
+        const B = runStack[m - 1];
+        runStack.splice(m - 2, 2);
+        merge(A[0], B[0], B[1] + 1);
+        runStack.push([A[0], B[1]]);
     }
 
     steps.push([...arr]);
     highlights.push([]);
     
     return { steps, highlights };
+  };
+
+  const executeCustomShuffle = (indices) => {
+    try {
+      const func = new Function('n', customShuffle);
+      const result = func(indices.length);
+      if (!Array.isArray(result) || result.length === 0) {
+        throw new Error(language === 'zh' ? '必须返回步骤数组' : 'Must return steps array');
+      }
+      const resultSorted = [...result].sort();
+      for (let i = 0; i < resultSorted.length; i++) {
+        if (resultSorted[i] !== i) {
+          throw new Error(language === 'zh' ? '返回的数组必须是有效的索引排列' : 'Returned array must be a valid permutation of indices');
+        }
+      }
+      return result;
+    } catch (e) {
+      alert(t.alerts.customAlgorithmError + e.message);
+      return indices;
+    }
   };
 
   const executeCustomAlgorithm = (indices) => {
@@ -1182,7 +1553,22 @@ const SortVisualizer = () => {
     setAudioSlicesCache(audSlices);
     
     const indices = Array.from({ length: sliceCount }, (_, i) => i);
-    const shuffled = [...indices].sort(() => Math.random() - 0.5);
+    let shuffled = [...indices];
+    if (shuffleAlgorithm === 'random') {
+        shuffled.sort(() => Math.random() - 0.5);
+    } else if (shuffleAlgorithm === 'ascending') {
+    } else if (shuffleAlgorithm === 'descending') {
+        shuffled.reverse();
+    } else if (shuffleAlgorithm === 'pipeorgan') {
+        for (let i = 0; i < sliceCount / 2; i++) {
+            shuffled[i] = 2 * i + 1;
+        }
+        for (let i = sliceCount / 2; i < sliceCount; i++) {
+            shuffled[i] = 2 * (sliceCount - i - 1);
+        }
+    } else {
+        shuffled = executeCustomShuffle(indices);
+    }
     
     setCurrentIndices(shuffled);
     
@@ -1194,8 +1580,12 @@ const SortVisualizer = () => {
     let result;
     if (sortAlgorithm === 'bubble') {
       result = bubbleSort(shuffled);
-    } else if (sortAlgorithm === 'quick') {
-      result = quickSort(shuffled);
+    } else if (sortAlgorithm === 'quickLL') {
+      result = quickSortLL(shuffled);
+    } else if (sortAlgorithm === 'quickLR') {
+      result = quickSortLR(shuffled);
+    } else if (sortAlgorithm === 'pdq') {
+      result = pdqSort(shuffled);
     } else if (sortAlgorithm === 'merge') {
       result = mergeSort(shuffled);
     } else if (sortAlgorithm === 'heap') {
@@ -1560,6 +1950,27 @@ const SortVisualizer = () => {
             </div>
           </div>
           
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.shuffleAlgorithm}</label>
+            <select value={shuffleAlgorithm} onChange={(e) => setShuffleAlgorithm(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+              {Object.entries(t.shuffleOptions).map(([key, value]) => (
+                <option key={key} value={key}>{value}</option>
+              ))}
+            </select>
+          </div>
+          
+          {shuffleAlgorithm === 'custom' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.customShuffle}</label>
+              <textarea
+                value={customShuffle}
+                onChange={(e) => setCustomShuffle(e.target.value)}
+                placeholder={t.customShufflePlaceholder}
+                className="w-full p-3 border border-gray-300 rounded font-mono text-sm h-32 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sortAlgorithm}</label>
             <select value={sortAlgorithm} onChange={(e) => setSortAlgorithm(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
