@@ -1512,9 +1512,9 @@ const SortVisualizer = () => {
       const func = new Function('n', customShuffle);
       const result = func(indices.length);
       if (!Array.isArray(result) || result.length === 0) {
-        throw new Error(language === 'zh' ? '必须返回步骤数组' : 'Must return steps array');
+        throw new Error(language === 'zh' ? '必须返回数组' : 'Must return array');
       }
-      const resultSorted = [...result].sort();
+      const resultSorted = [...result].sort((a, b) => a - b);
       for (let i = 0; i < resultSorted.length; i++) {
         if (resultSorted[i] !== i) {
           throw new Error(language === 'zh' ? '返回的数组必须是有效的索引排列' : 'Returned array must be a valid permutation of indices');
