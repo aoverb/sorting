@@ -291,12 +291,12 @@ const SortVisualizer = () => {
     if (sliceDirection === 'vertical') {
       const displaySliceWidth = displayWidth / sliceCount;
       canvas.height = cropH;
+      const sliceWidth = cropW / sliceCount;
+      canvas.width = sliceWidth;
       
       for (let i = 0; i < sliceCount; i++) {
-        const thisSliceWidth = Math.floor((i + 1) * cropW / sliceCount) - Math.floor(i * cropW / sliceCount);
-        canvas.width = thisSliceWidth;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, cropX + Math.floor(i * cropW / sliceCount), cropY, thisSliceWidth, cropH, 0, 0, thisSliceWidth, cropH);
+        ctx.drawImage(img, cropX + Math.floor(i * cropW / sliceCount), cropY, sliceWidth, cropH, 0, 0, sliceWidth, cropH);
         sliceArray.push({
           dataUrl: canvas.toDataURL('image/png'),
           displayWidth: displaySliceWidth,
@@ -306,12 +306,12 @@ const SortVisualizer = () => {
     } else {
       const displaySliceHeight = displayHeight / sliceCount;
       canvas.width = cropW;
+      const sliceHeight = cropH / sliceCount;
+      canvas.height = sliceHeight;
       
       for (let i = 0; i < sliceCount; i++) {
-        const thisSliceHeight = Math.floor((i + 1) * cropH / sliceCount) - Math.floor(i * cropH / sliceCount);
-        canvas.height = thisSliceHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, cropX, cropY + Math.floor(i * cropH / sliceCount), cropW, thisSliceHeight, 0, 0, cropW, thisSliceHeight);
+        ctx.drawImage(img, cropX, cropY + Math.floor(i * cropH / sliceCount), cropW, sliceHeight, 0, 0, cropW, sliceHeight);
         sliceArray.push({
           dataUrl: canvas.toDataURL('image/png'),
           displayWidth: displayWidth,
@@ -621,8 +621,16 @@ const SortVisualizer = () => {
       let i = low;
       let j = high;
       while (true) {
-        while (i <= j && arr[i] <= pivot) { i = i + 1; }
-        while (i <= j && arr[j] >= pivot) { j = j - 1; }
+        while (i <= j && arr[i] < pivot) {
+            steps.push([...arr]);
+            highlights.push([i, p]);
+            i = i + 1;
+        }
+        while (i <= j && arr[j] > pivot) {
+            steps.push([...arr]);
+            highlights.push([j, p]);
+            j = j - 1;
+        }
         if (i > j) { return j; }
         [arr[i], arr[j]] = [arr[j], arr[i]];
         steps.push([...arr]);
@@ -637,7 +645,7 @@ const SortVisualizer = () => {
     const sort = (low, high) => {
       if (low < high) {
         const pi = partition(low, high);
-        sort(low, pi - 1);
+        sort(low, pi);
         sort(pi + 1, high);
       }
     };
@@ -682,7 +690,7 @@ const SortVisualizer = () => {
         let i = 0, j = m, k = l;
 
         while (i < leftArr.length && j < r) {
-            if (leftArr[i] <= rightArr[j]) {
+            if (leftArr[i] <= arr[j]) {
                 arr[k] = leftArr[i];
                 i++;
             } else {
@@ -724,8 +732,16 @@ const SortVisualizer = () => {
         let j = high - 1;
         const pivot = arr[p];
         while (i <= j) {
-            while (arr[i] <= pivot) { i++; }
-            while (arr[j] >= pivot) { j--; }
+            while (i <= j && arr[i] < pivot) {
+                steps.push([...arr]);
+                highlights.push([i, p]);
+                i = i + 1;
+            }
+            while (i <= j && arr[j] > pivot) {
+                steps.push([...arr]);
+                highlights.push([j, p]);
+                j = j - 1;
+            }
             if (i <= j) {
                 [arr[i], arr[j]] = [arr[j], arr[i]];
                 steps.push([...arr]);
@@ -758,17 +774,17 @@ const SortVisualizer = () => {
         }
     };
 
-    const detectRun = (start) => {
+    const detectRun = (start, arrayEnd) => {
         if (arr[start] <= arr[start + 1]) {
             let end = start + 1;
-            while (end + 1 < n && arr[end] <= arr[end + 1]) {
+            while (end < arrayEnd && arr[end] <= arr[end + 1]) {
                 end++;
             }
             return end;
         }
         else {
             let end = start + 1;
-            while (end + 1 < n && arr[end] >= arr[end + 1]) {
+            while (end < arrayEnd && arr[end] >= arr[end + 1]) {
                 end++;
             }
             for (let i = start, j = end; i < j; i++, j--) {
@@ -785,8 +801,8 @@ const SortVisualizer = () => {
             insertionSort(low, high - 1);
             return;
         }
-        const runEnd = detectRun(low);
-        if (runEnd == high - 1) return;
+        const runEnd = detectRun(low, high - 1);
+        if (runEnd >= high - 1) return;
         if (runEnd >= low + (high - low) / 4) {
             sort(runEnd + 1, high, badAllowed);
             merge(low, runEnd + 1, high);
@@ -1397,7 +1413,7 @@ const SortVisualizer = () => {
         let i = 0, j = m, k = l;
 
         while (i < leftArr.length && j < r) {
-            if (leftArr[i] <= rightArr[j]) {
+            if (leftArr[i] <= arr[j]) {
                 arr[k] = leftArr[i];
                 i++;
             } else {
@@ -1496,9 +1512,9 @@ const SortVisualizer = () => {
       const func = new Function('n', customShuffle);
       const result = func(indices.length);
       if (!Array.isArray(result) || result.length === 0) {
-        throw new Error(language === 'zh' ? '必须返回步骤数组' : 'Must return steps array');
+        throw new Error(language === 'zh' ? '必须返回数组' : 'Must return array');
       }
-      const resultSorted = [...result].sort();
+      const resultSorted = [...result].sort((a, b) => a - b);
       for (let i = 0; i < resultSorted.length; i++) {
         if (resultSorted[i] !== i) {
           throw new Error(language === 'zh' ? '返回的数组必须是有效的索引排列' : 'Returned array must be a valid permutation of indices');
@@ -1562,10 +1578,10 @@ const SortVisualizer = () => {
     } else if (shuffleAlgorithm === 'descending') {
         shuffled.reverse();
     } else if (shuffleAlgorithm === 'pipeorgan') {
-        for (let i = 0; i < sliceCount / 2; i++) {
+        for (let i = 0; i < Math.floor(sliceCount / 2); i++) {
             shuffled[i] = 2 * i + 1;
         }
-        for (let i = sliceCount / 2; i < sliceCount; i++) {
+        for (let i = Math.floor(sliceCount / 2); i < sliceCount; i++) {
             shuffled[i] = 2 * (sliceCount - i - 1);
         }
     } else {
