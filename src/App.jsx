@@ -682,7 +682,7 @@ const SortVisualizer = () => {
         let i = 0, j = m, k = l;
 
         while (i < leftArr.length && j < r) {
-            if (leftArr[i] <= rightArr[j]) {
+            if (leftArr[i] <= arr[j]) {
                 arr[k] = leftArr[i];
                 i++;
             } else {
@@ -1397,7 +1397,7 @@ const SortVisualizer = () => {
         let i = 0, j = m, k = l;
 
         while (i < leftArr.length && j < r) {
-            if (leftArr[i] <= rightArr[j]) {
+            if (leftArr[i] <= arr[j]) {
                 arr[k] = leftArr[i];
                 i++;
             } else {
