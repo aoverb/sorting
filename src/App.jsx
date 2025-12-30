@@ -621,8 +621,16 @@ const SortVisualizer = () => {
       let i = low;
       let j = high;
       while (true) {
-        while (i <= j && arr[i] < pivot) { i = i + 1; }
-        while (i <= j && arr[j] > pivot) { j = j - 1; }
+        while (i <= j && arr[i] < pivot) {
+            steps.push([...arr]);
+            highlights.push([i, p]);
+            i = i + 1;
+        }
+        while (i <= j && arr[j] > pivot) {
+            steps.push([...arr]);
+            highlights.push([j, p]);
+            j = j - 1;
+        }
         if (i > j) { return j; }
         [arr[i], arr[j]] = [arr[j], arr[i]];
         steps.push([...arr]);
@@ -724,8 +732,16 @@ const SortVisualizer = () => {
         let j = high - 1;
         const pivot = arr[p];
         while (i <= j) {
-            while (i <= j && arr[i] < pivot) { i++; }
-            while (i <= j && arr[j] > pivot) { j--; }
+            while (i <= j && arr[i] < pivot) {
+                steps.push([...arr]);
+                highlights.push([i, p]);
+                i = i + 1;
+            }
+            while (i <= j && arr[j] > pivot) {
+                steps.push([...arr]);
+                highlights.push([j, p]);
+                j = j - 1;
+            }
             if (i <= j) {
                 [arr[i], arr[j]] = [arr[j], arr[i]];
                 steps.push([...arr]);
