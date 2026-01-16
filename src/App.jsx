@@ -631,71 +631,13 @@ const SortVisualizer = () => {
     steps.push([...arr]);
     highlights.push([]);
 
-    const insertionSort = (left, right) => {
-        for (let i = left + 1; i <= right; i++) {
-            let temp = arr[i];
-            let j = i - 1;
-            
-            steps.push([...arr]);
-            highlights.push([i, j + 1]);
-            
-            while (j >= left && arr[j] > temp) {
-                arr[j + 1] = arr[j];
-                steps.push([...arr]);
-                highlights.push([j, j + 1]);
-                j--;
-            }
-            
-            if (arr[j + 1] !== temp) {
-                arr[j + 1] = temp;
-                steps.push([...arr]);
-                highlights.push([j + 1]);
-            }
-        }
-    };
-
-    const merge = (l, m, r) => {
-        const leftArr = arr.slice(l, m);
-
-        let i = 0, j = m, k = l;
-
-        while (i < leftArr.length && j < r) {
-            if (leftArr[i] <= rightArr[j]) {
-                arr[k] = leftArr[i];
-                i++;
-            } else {
-                arr[k] = arr[j];
-                j++;
-            }
-            steps.push([...arr]);
-            highlights.push([k]);
-            k++;
-        }
-
-        while (i < leftArr.length) {
-            arr[k] = leftArr[i];
-            steps.push([...arr]);
-            highlights.push([k]);
-            i++;
-            k++;
-        }
-
-        while (j < r && j > k) {
-            arr[k] = arr[j];
-            steps.push([...arr]);
-            highlights.push([k]);
-            j++;
-            k++;
-        }
-    };
-
     const partition = (low, high) => {
         let swapCount = 0;
         const pivotArr = [arr[low], arr[Math.floor((low + high) / 2)], arr[high]];
         pivotArr.sort((a, b) => a - b);
         const pivot = pivotArr[1];
         let i = low;
-        let j = high - 1;
+        let j = high;
         while (i <= j) {
             while (arr[i] < pivot) { i++; }
             while (arr[j] > pivot) { j--; }
@@ -708,7 +650,7 @@ const SortVisualizer = () => {
                 j--;
             }
         }
-        return [j, swapCount];
+        return [i, swapCount];
     };
 
     const heapify = (heapRoot, size, i) => {
@@ -729,32 +671,10 @@ const SortVisualizer = () => {
         }
     };
 
-    const detectRun = (start) => {
-        if (arr[start] <= arr[start + 1]) {
-            let end = start + 1;
-            while (end + 1 < n && arr[end] <= arr[end + 1]) {
-                end++;
-            }
-            return end;
-        }
-        else {
-            let end = start + 1;
-            while (end + 1 < n && arr[end] >= arr[end + 1]) {
-                end++;
-            }
-            for (let i = start, j = end; i < j; i++, j--) {
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-                steps.push([...arr]);
-                highlights.push([i, j]);
-            }
-            return end;
-        }
-    };
-
     const sort = (low, high, badAllowed) => {
         if (high - low <= 16) return;
         if (badAllowed === 0) {
-            const size = high - low;
+            const size = high - low + 1;
             for (let i = Math.floor(size / 2) - 1; i >= 0; i--) {
                 heapify(low, size, i);
             }
@@ -766,42 +686,36 @@ const SortVisualizer = () => {
             }
             return;
         }
-        const runEnd = detectRun(low);
-        if (runEnd == high - 1) return;
-        if (runEnd >= (low + high) / 2) {
-            sort(runEnd + 1, high, badAllowed - 1);
-            insertionSort(runEnd + 1, high - 1);
-            merge(low, runEnd + 1, high);
-            return;
-        }
-        const [pi, swapCount] = partition(low, high);
-        if (swapCount <= 8) {
-            let insertCount = 0;
-            for (let i = low + 1; i < high && insertCount <= 24; i++) {
-                const key = arr[i];
-                let j = i - 1;
-                while (j >= low && arr[j] > key) {
-                    arr[j + 1] = arr[j];
-                    steps.push([...arr]);
-                    highlights.push([j, j + 1]);
-                    j--;
-                    ++insertCount;
-                    if (insertCount > 24) break;
+        while (low < high) {
+            const [pi, swapCount] = partition(low, high);
+            if (swapCount <= 8) {
+                let insertCount = 0;
+                for (let i = low + 1; i <= high && insertCount <= 24; i++) {
+                    const key = arr[i];
+                    let j = i - 1;
+                    while (j >= low && arr[j] > key) {
+                        arr[j + 1] = arr[j];
+                        steps.push([...arr]);
+                        highlights.push([j, j + 1]);
+                        j--;
+                        ++insertCount;
+                        if (insertCount > 24) break;
+                    }
+                    arr[j + 1] = key;
+                    if (j + 1 !== i) {
+                        steps.push([...arr]);
+                        highlights.push([j + 1]);
+                    }
                 }
-                arr[j + 1] = key;
-                if (j + 1 !== i) {
-                    steps.push([...arr]);
-                    highlights.push([j + 1]);
-                }
+                if (insertCount <= 24) return;
             }
-            if (insertCount <= 24) return;
+            sort(low, pi - 1, badAllowed - 1);
+            sort(pi + 1, high, badAllowed - 1);
         }
-        sort(low, pi, badAllowed - 1);
-        sort(pi, high, badAllowed - 1);
     };
 
-    sort(0, arr.length, Math.floor(Math.log2(arr.length)) * 2);
-    insertionSort(0, arr.length - 1);
+    sort(0, arr.length - 1, Math.floor(Math.log2(arr.length)) * 2);
+    insertionSort(arr);
     return { steps, highlights };
   };
 
