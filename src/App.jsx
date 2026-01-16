@@ -58,7 +58,6 @@ const translations = {
       cocktail: "Cocktail Sort",
       quickLL: "Quick Sort (LL pointers)",
       quickLR: "Quick Sort (LR pointers)",
-      pdq: "PDQ Sort",
       bubble: "Bubble Sort",
       tim: "Tim Sort",
       bucket: "Bucket Sort",
@@ -135,7 +134,6 @@ const translations = {
       cocktail: "鸡尾酒排序",
       quickLL: "快速排序（双左指针）",
       quickLR: "快速排序（左右指针）",
-      pdq: "PDQ Sort",
       bubble: "冒泡排序",
       tim: "Timsort",
       bucket: "桶排序",
@@ -621,101 +619,6 @@ const SortVisualizer = () => {
     };
     
     sort(0, arr.length - 1);
-    return { steps, highlights };
-  };
-
-  const pdqSort = (indices) => {
-    const steps = [];
-    const highlights = [];
-    const arr = [...indices];
-    steps.push([...arr]);
-    highlights.push([]);
-
-    const partition = (low, high) => {
-        let swapCount = 0;
-        const pivotArr = [arr[low], arr[Math.floor((low + high) / 2)], arr[high]];
-        pivotArr.sort((a, b) => a - b);
-        const pivot = pivotArr[1];
-        let i = low;
-        let j = high;
-        while (i <= j) {
-            while (arr[i] < pivot) { i++; }
-            while (arr[j] > pivot) { j--; }
-            if (i <= j) {
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-                steps.push([...arr]);
-                highlights.push([i, j]);
-                swapCount++;
-                i++;
-                j--;
-            }
-        }
-        return [i, swapCount];
-    };
-
-    const heapify = (heapRoot, size, i) => {
-        let largest = i;
-        const left = 2 * i + 1;
-        const right = 2 * i + 2;
-        if (left < size && arr[heapRoot + left] > arr[heapRoot + largest]) {
-            largest = left;
-        }
-        if (right < size && arr[heapRoot + right] > arr[heapRoot + largest]) {
-            largest = right;
-        }
-        if (largest !== i) {
-            [arr[heapRoot + i], arr[heapRoot + largest]] = [arr[heapRoot + largest], arr[heapRoot + i]];
-            steps.push([...arr]);
-            highlights.push([heapRoot + i, heapRoot + largest]);
-            heapify(heapRoot, size, largest);
-        }
-    };
-
-    const sort = (low, high, badAllowed) => {
-        if (high - low <= 16) return;
-        if (badAllowed === 0) {
-            const size = high - low + 1;
-            for (let i = Math.floor(size / 2) - 1; i >= 0; i--) {
-                heapify(low, size, i);
-            }
-            for (let i = size - 1; i > 0; i--) {
-                [arr[low], arr[low + i]] = [arr[low + i], arr[low]];
-                steps.push([...arr]);
-                highlights.push([low, low + i]);
-                heapify(low, i, 0);
-            }
-            return;
-        }
-        while (low < high) {
-            const [pi, swapCount] = partition(low, high);
-            if (swapCount <= 8) {
-                let insertCount = 0;
-                for (let i = low + 1; i <= high && insertCount <= 24; i++) {
-                    const key = arr[i];
-                    let j = i - 1;
-                    while (j >= low && arr[j] > key) {
-                        arr[j + 1] = arr[j];
-                        steps.push([...arr]);
-                        highlights.push([j, j + 1]);
-                        j--;
-                        ++insertCount;
-                        if (insertCount > 24) break;
-                    }
-                    arr[j + 1] = key;
-                    if (j + 1 !== i) {
-                        steps.push([...arr]);
-                        highlights.push([j + 1]);
-                    }
-                }
-                if (insertCount <= 24) return;
-            }
-            sort(low, pi - 1, badAllowed - 1);
-            sort(pi + 1, high, badAllowed - 1);
-        }
-    };
-
-    sort(0, arr.length - 1, Math.floor(Math.log2(arr.length)) * 2);
-    insertionSort(arr);
     return { steps, highlights };
   };
 
@@ -1450,8 +1353,6 @@ const SortVisualizer = () => {
       result = quickSortLL(shuffled);
     } else if (sortAlgorithm === 'quickLR') {
       result = quickSortLR(shuffled);
-    } else if (sortAlgorithm === 'pdq') {
-      result = pdqSort(shuffled);
     } else if (sortAlgorithm === 'merge') {
       result = mergeSort(shuffled);
     } else if (sortAlgorithm === 'heap') {
