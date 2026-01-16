@@ -56,8 +56,7 @@ const translations = {
       counting: "Counting Sort",
       radix: "Radix Sort",
       cocktail: "Cocktail Sort",
-      quickLL: "Quick Sort (LL pointers)",
-      quickLR: "Quick Sort (LR pointers)",
+      quick: "Quick Sort",
       bubble: "Bubble Sort",
       tim: "Tim Sort",
       bucket: "Bucket Sort",
@@ -124,10 +123,9 @@ const translations = {
       counting: "计数排序",
       radix: "基数排序",
       cocktail: "鸡尾酒排序",
-      quickLL: "快速排序（双左指针）",
-      quickLR: "快速排序（左右指针）",
+      quick: "快速排序",
       bubble: "冒泡排序",
-      tim: "Timsort",
+      tim: "Tim排序",
       bucket: "桶排序",
       shell: "希尔排序",
       selection: "选择排序",
@@ -531,7 +529,7 @@ const SortVisualizer = () => {
     return { steps, highlights };
   };
 
-  const quickSortLL = (indices) => {
+  const quickSort = (indices) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
@@ -558,39 +556,6 @@ const SortVisualizer = () => {
         highlights.push([i + 1, high]);
       }
       return i + 1;
-    };
-    
-    const sort = (low, high) => {
-      if (low < high) {
-        const pi = partition(low, high);
-        sort(low, pi - 1);
-        sort(pi + 1, high);
-      }
-    };
-    
-    sort(0, arr.length - 1);
-    return { steps, highlights };
-  };
-
-  const quickSortLR = (indices) => {
-    const steps = [];
-    const highlights = [];
-    const arr = [...indices];
-    steps.push([...arr]);
-    highlights.push([]);
-    
-    const partition = (low, high) => {
-      const pivot = arr[high];
-      let i = low;
-      let j = high;
-      while (true) {
-        while (arr[i] < pivot) { i = i + 1; }
-        while (arr[j] > pivot) { j = j - 1; }
-        if (i >= j) { return j; }
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-        steps.push([...arr]);
-        highlights.push([i, j]);
-      }
     };
     
     const sort = (low, high) => {
@@ -1229,10 +1194,8 @@ const SortVisualizer = () => {
     let result;
     if (sortAlgorithm === 'bubble') {
       result = bubbleSort(shuffled);
-    } else if (sortAlgorithm === 'quickLL') {
-      result = quickSortLL(shuffled);
-    } else if (sortAlgorithm === 'quickLR') {
-      result = quickSortLR(shuffled);
+    } else if (sortAlgorithm === 'quick') {
+      result = quickSort(shuffled);
     } else if (sortAlgorithm === 'merge') {
       result = mergeSort(shuffled);
     } else if (sortAlgorithm === 'heap') {
