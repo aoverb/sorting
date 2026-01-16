@@ -333,8 +333,8 @@ const SortVisualizer = () => {
     const sliceArray = [];
     for (let i = 0; i < sliceCount; i++) {
       sliceArray.push({
-        start: startTime + i * duration / sliceCount,
-        duration: sliceDuration
+        start: startTime + Math.floor(i * duration / sliceCount),
+        duration: Math.floor((i + 1) * duration / sliceCount) - Math.floor(i * duration / sliceCount)
       });
     }
     return sliceArray;
