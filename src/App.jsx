@@ -597,29 +597,18 @@ const SortVisualizer = () => {
     const arr = [...indices];
     steps.push([...arr]);
     highlights.push([]);
-
-    const median3 = (a, b, c) => {
-        const pivotArr = [a, b, c];
-        pivotArr.sort((a, b) => arr[a] - arr[b]);
-        return pivotArr[1];
-    }
     
     const partition = (low, high) => {
-      let p = median3(low, (low + high) / 2, high);
-      const pivot = arr[p];
+      const pivot = arr[high];
       let i = low;
       let j = high;
       while (true) {
-        while (i <= j && arr[i] <= pivot) { i = i + 1; }
-        while (i <= j && arr[j] >= pivot) { j = j - 1; }
-        if (i > j) { return j; }
+        while (arr[i] < pivot) { i = i + 1; }
+        while (arr[j] > pivot) { j = j - 1; }
+        if (i >= j) { return j; }
         [arr[i], arr[j]] = [arr[j], arr[i]];
         steps.push([...arr]);
         highlights.push([i, j]);
-        if (p == i) p = j;
-        else if (p == j) p = i;
-        i++;
-        j--;
       }
     };
     
@@ -700,28 +689,21 @@ const SortVisualizer = () => {
         }
     };
 
-    const median3 = (a, b, c) => {
-        const pivotArr = [a, b, c];
-        pivotArr.sort((a, b) => arr[a] - arr[b]);
-        return pivotArr[1];
-    }
-
     const partition = (low, high) => {
         let swapCount = 0;
-        let p = median3(low, (low + high) / 2, high - 1);
+        const pivotArr = [arr[low], arr[Math.floor((low + high) / 2)], arr[high]];
+        pivotArr.sort((a, b) => a - b);
+        const pivot = pivotArr[1];
         let i = low;
         let j = high - 1;
-        const pivot = arr[p];
         while (i <= j) {
-            while (arr[i] <= pivot) { i++; }
-            while (arr[j] >= pivot) { j--; }
+            while (arr[i] < pivot) { i++; }
+            while (arr[j] > pivot) { j--; }
             if (i <= j) {
                 [arr[i], arr[j]] = [arr[j], arr[i]];
                 steps.push([...arr]);
                 highlights.push([i, j]);
                 swapCount++;
-                if (p == i) p = j;
-                else if (p == j) p = i;
                 i++;
                 j--;
             }
@@ -770,23 +752,32 @@ const SortVisualizer = () => {
     };
 
     const sort = (low, high, badAllowed) => {
-        if (high - low <= 32) {
-            insertionSort(low, high - 1);
+        if (high - low <= 16) return;
+        if (badAllowed === 0) {
+            const size = high - low;
+            for (let i = Math.floor(size / 2) - 1; i >= 0; i--) {
+                heapify(low, size, i);
+            }
+            for (let i = size - 1; i > 0; i--) {
+                [arr[low], arr[low + i]] = [arr[low + i], arr[low]];
+                steps.push([...arr]);
+                highlights.push([low, low + i]);
+                heapify(low, i, 0);
+            }
             return;
         }
         const runEnd = detectRun(low);
         if (runEnd == high - 1) return;
-        if (runEnd >= low + (high - low) / 4) {
-            sort(runEnd + 1, high, badAllowed);
+        if (runEnd >= (low + high) / 2) {
+            sort(runEnd + 1, high, badAllowed - 1);
+            insertionSort(runEnd + 1, high - 1);
             merge(low, runEnd + 1, high);
             return;
         }
         const [pi, swapCount] = partition(low, high);
-        const l_size = pi - low;
-        const r_size = high - pi - 1;
         if (swapCount <= 8) {
             let insertCount = 0;
-            for (let i = low + 1; i < high; i++) {
+            for (let i = low + 1; i < high && insertCount <= 24; i++) {
                 const key = arr[i];
                 let j = i - 1;
                 while (j >= low && arr[j] > key) {
@@ -795,7 +786,7 @@ const SortVisualizer = () => {
                     highlights.push([j, j + 1]);
                     j--;
                     ++insertCount;
-                    if (insertCount > 48) break;
+                    if (insertCount > 24) break;
                 }
                 arr[j + 1] = key;
                 if (j + 1 !== i) {
@@ -803,44 +794,14 @@ const SortVisualizer = () => {
                     highlights.push([j + 1]);
                 }
             }
-            if (insertCount <= 48) return;
+            if (insertCount <= 24) return;
         }
-        if (l_size < r_size / 8 || r_size < l_size / 8) {
-            if (--badAllowed == 0) {
-                const size = high - low;
-                for (let i = Math.floor(size / 2) - 1; i >= 0; i--) {
-                    heapify(low, size, i);
-                }
-                for (let i = size - 1; i > 0; i--) {
-                    [arr[low], arr[low + i]] = [arr[low + i], arr[low]];
-                    steps.push([...arr]);
-                    highlights.push([low, low + i]);
-                    heapify(low, i, 0);
-                }
-                return;
-            }
-            if (l_size > 32) {
-                [arr[low], arr[low + l_size / 4]] = [arr[low + l_size / 4], arr[low]];
-                steps.push([...arr]);
-                highlights.push([low, low + l_size / 4]);
-                [arr[pi - 1], arr[pi - l_size / 4]] = [arr[pi - l_size / 4], arr[pi - 1]];
-                steps.push([...arr]);
-                highlights.push([pi - 1, pi - l_size / 4]);
-            }
-            if (r_size > 32) {
-                [arr[pi + 1], arr[pi + r_size / 4 + 1]] = [arr[pi + r_size / 4 + 1], arr[pi + 1]];
-                steps.push([...arr]);
-                highlights.push([pi + 1, pi + r_size / 4 + 1]);
-                [arr[high - 1], arr[high - r_size / 4]] = [arr[high - r_size / 4], arr[high - 1]];
-                steps.push([...arr]);
-                highlights.push([high - 1, high - r_size / 4]);
-            }
-        }
-        sort(low, pi, badAllowed);
-        sort(pi, high, badAllowed);
+        sort(low, pi, badAllowed - 1);
+        sort(pi, high, badAllowed - 1);
     };
 
-    sort(0, arr.length, Math.floor(Math.log2(arr.length)));
+    sort(0, arr.length, Math.floor(Math.log2(arr.length)) * 2);
+    insertionSort(0, arr.length - 1);
     return { steps, highlights };
   };
 
