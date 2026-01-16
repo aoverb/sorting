@@ -65,14 +65,6 @@ const translations = {
       selection: "Selection Sort",
       custom: "Custom Algorithm"
     },
-    shuffleOptions: {
-        random: "Random Shuffle",
-        ascending: "Ascending Order",
-        descending: "Descending Order",
-        pipeorgan: "Pipe Organ Shuffle",
-        custom: "Custom Shuffle"
-    },
-    shuffleAlgorithmPlaceholder: "const array = Array.from({ length: n }, (_, i) => i);\n// Your shuffle logic\nreturn array;",
     alerts: {
       uploadImageFirst: "Please upload an image first",
       imageSliceFailed: "Failed to create image slices",
@@ -141,14 +133,6 @@ const translations = {
       selection: "选择排序",
       custom: "自定义算法"
     },
-    shuffleOptions: {
-        random: "随机打乱",
-        ascending: "升序排列",
-        descending: "降序排列",
-        pipeorgan: "风琴式排列",
-        custom: "自定义打乱"
-    },
-    shuffleAlgorithmPlaceholder: "const array = Array.from({ length: n }, (_, i) => i);\n// 你的打乱逻辑\nreturn array;",
     alerts: {
       uploadImageFirst: "请先上传图片",
       imageSliceFailed: "图片切片创建失败",
@@ -166,8 +150,6 @@ const SortVisualizer = () => {
   const [sliceCount, setSliceCount] = useState(20);
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 100, height: 100 });
   const [audioRange, setAudioRange] = useState({ start: 0, end: 100 });
-  const [shuffleAlgorithm, setShuffleAlgorithm] = useState('random');
-  const [customShuffle, setCustomShuffle] = useState('');
   const [sortAlgorithm, setSortAlgorithm] = useState('bubble');
   const [customAlgorithm, setCustomAlgorithm] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -1258,26 +1240,6 @@ const SortVisualizer = () => {
     return { steps, highlights };
   };
 
-  const executeCustomShuffle = (indices) => {
-    try {
-      const func = new Function('n', customShuffle);
-      const result = func(indices.length);
-      if (!Array.isArray(result) || result.length === 0) {
-        throw new Error(language === 'zh' ? '必须返回步骤数组' : 'Must return steps array');
-      }
-      const resultSorted = [...result].sort();
-      for (let i = 0; i < resultSorted.length; i++) {
-        if (resultSorted[i] !== i) {
-          throw new Error(language === 'zh' ? '返回的数组必须是有效的索引排列' : 'Returned array must be a valid permutation of indices');
-        }
-      }
-      return result;
-    } catch (e) {
-      alert(t.alerts.customAlgorithmError + e.message);
-      return indices;
-    }
-  };
-
   const executeCustomAlgorithm = (indices) => {
     try {
       const func = new Function('arr', customAlgorithm);
@@ -1322,22 +1284,7 @@ const SortVisualizer = () => {
     setAudioSlicesCache(audSlices);
     
     const indices = Array.from({ length: sliceCount }, (_, i) => i);
-    let shuffled = [...indices];
-    if (shuffleAlgorithm === 'random') {
-        shuffled.sort(() => Math.random() - 0.5);
-    } else if (shuffleAlgorithm === 'ascending') {
-    } else if (shuffleAlgorithm === 'descending') {
-        shuffled.reverse();
-    } else if (shuffleAlgorithm === 'pipeorgan') {
-        for (let i = 0; i < sliceCount / 2; i++) {
-            shuffled[i] = 2 * i + 1;
-        }
-        for (let i = sliceCount / 2; i < sliceCount; i++) {
-            shuffled[i] = 2 * (sliceCount - i - 1);
-        }
-    } else {
-        shuffled = executeCustomShuffle(indices);
-    }
+    const shuffled = [...indices].sort(() => Math.random() - 0.5);
     
     setCurrentIndices(shuffled);
     
@@ -1717,27 +1664,6 @@ const SortVisualizer = () => {
             </div>
           </div>
           
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.shuffleAlgorithm}</label>
-            <select value={shuffleAlgorithm} onChange={(e) => setShuffleAlgorithm(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-              {Object.entries(t.shuffleOptions).map(([key, value]) => (
-                <option key={key} value={key}>{value}</option>
-              ))}
-            </select>
-          </div>
-          
-          {shuffleAlgorithm === 'custom' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.customShuffle}</label>
-              <textarea
-                value={customShuffle}
-                onChange={(e) => setCustomShuffle(e.target.value)}
-                placeholder={t.customShufflePlaceholder}
-                className="w-full p-3 border border-gray-300 rounded font-mono text-sm h-32 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          )}
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">{t.sortAlgorithm}</label>
             <select value={sortAlgorithm} onChange={(e) => setSortAlgorithm(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
