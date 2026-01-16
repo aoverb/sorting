@@ -553,20 +553,15 @@ const SortVisualizer = () => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
-
     steps.push([...arr]);
     highlights.push([]);
-
+    
     const partition = (low, high) => {
       const pivot = arr[high];
       let i = low - 1;
-
+      
       for (let j = low; j < high; j++) {
-        // 记录比较（即使不交换）
-        steps.push([...arr]);
-        highlights.push([j, high]);
-
-        if (arr[j] <= pivot) {
+        if (arr[j] < pivot) {
           i++;
           if (i !== j) {
             [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -575,30 +570,23 @@ const SortVisualizer = () => {
           }
         }
       }
-
-      // pivot 归位
       if (i + 1 !== high) {
         [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
         steps.push([...arr]);
         highlights.push([i + 1, high]);
       }
-
       return i + 1;
     };
-
+    
     const sort = (low, high) => {
-      if (low >= high) return;
-      const pi = partition(low, high);
-      sort(low, pi - 1);
-      sort(pi + 1, high);
+      if (low < high) {
+        const pi = partition(low, high);
+        sort(low, pi - 1);
+        sort(pi + 1, high);
+      }
     };
-
+    
     sort(0, arr.length - 1);
-
-    // 最终状态兜底
-    steps.push([...arr]);
-    highlights.push([]);
-
     return { steps, highlights };
   };
 
