@@ -482,51 +482,52 @@ const SortVisualizer = () => {
     steps.push([...arr]);
     highlights.push([]);
 
-    const merge = (l, m, r) => {
-        const leftArr = arr.slice(l, m);
+    const merge = (left, mid, right) => {
+      const leftArr = arr.slice(left, mid + 1);
+      const rightArr = arr.slice(mid + 1, right + 1);
 
-        let i = 0, j = m, k = l;
+      let i = 0, j = 0, k = left;
 
-        while (i < leftArr.length && j < r) {
-            if (leftArr[i] <= rightArr[j]) {
-                arr[k] = leftArr[i];
-                i++;
-            } else {
-                arr[k] = arr[j];
-                j++;
-            }
-            steps.push([...arr]);
-            highlights.push([k]);
-            k++;
+      while (i < leftArr.length && j < rightArr.length) {
+        if (leftArr[i] <= rightArr[j]) {
+          arr[k] = leftArr[i];
+          i++;
+        } else {
+          arr[k] = rightArr[j];
+          j++;
         }
+        steps.push([...arr]);
+        highlights.push([k]);
+        k++;
+      }
 
-        while (i < leftArr.length) {
-            arr[k] = leftArr[i];
-            steps.push([...arr]);
-            highlights.push([k]);
-            i++;
-            k++;
-        }
+      while (i < leftArr.length) {
+        arr[k] = leftArr[i];
+        steps.push([...arr]);
+        highlights.push([k]);
+        i++;
+        k++;
+      }
 
-        while (j < r && j > k) {
-            arr[k] = arr[j];
-            steps.push([...arr]);
-            highlights.push([k]);
-            j++;
-            k++;
-        }
+      while (j < rightArr.length) {
+        arr[k] = rightArr[j];
+        steps.push([...arr]);
+        highlights.push([k]);
+        j++;
+        k++;
+      }
     };
 
     const sort = (left, right) => {
       if (left < right) {
         const mid = Math.floor((left + right) / 2);
         sort(left, mid);
-        sort(mid, right);
+        sort(mid + 1, right);
         merge(left, mid, right);
       }
     };
 
-    sort(0, arr.length);
+    sort(0, arr.length - 1);
     return { steps, highlights };
   };
 
@@ -1084,38 +1085,14 @@ const SortVisualizer = () => {
     return { steps, highlights };
   };
 
-  const timSort = (indices) => {
+  const timSort = (indices, minRun = 32) => {
     const steps = [];
     const highlights = [];
     const arr = [...indices];
     steps.push([...arr]);
     highlights.push([]);
-    const minRun = indices.length / Math.pow(2, Math.floor(Math.log2(indices.length / 32)));
-    const runStack = [];
 
     const n = arr.length;
-
-    const detectRun = (start) => {
-        if (arr[start] <= arr[start + 1]) {
-            let end = start + 1;
-            while (end + 1 < n && arr[end] <= arr[end + 1]) {
-                end++;
-            }
-            return end;
-        }
-        else {
-            let end = start + 1;
-            while (end + 1 < n && arr[end] >= arr[end + 1]) {
-                end++;
-            }
-            for (let i = start, j = end; i < j; i++, j--) {
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-                steps.push([...arr]);
-                highlights.push([i, j]);
-            }
-            return end;
-        }
-    }
 
     const insertionSort = (left, right) => {
         for (let i = left + 1; i <= right; i++) {
@@ -1141,16 +1118,17 @@ const SortVisualizer = () => {
     };
 
     const merge = (l, m, r) => {
-        const leftArr = arr.slice(l, m);
+        const leftArr = arr.slice(l, m + 1);
+        const rightArr = arr.slice(m + 1, r + 1);
 
-        let i = 0, j = m, k = l;
+        let i = 0, j = 0, k = l;
 
-        while (i < leftArr.length && j < r) {
+        while (i < leftArr.length && j < rightArr.length) {
             if (leftArr[i] <= rightArr[j]) {
                 arr[k] = leftArr[i];
                 i++;
             } else {
-                arr[k] = arr[j];
+                arr[k] = rightArr[j];
                 j++;
             }
             steps.push([...arr]);
@@ -1166,8 +1144,8 @@ const SortVisualizer = () => {
             k++;
         }
 
-        while (j < r && j > k) {
-            arr[k] = arr[j];
+        while (j < rightArr.length) {
+            arr[k] = rightArr[j];
             steps.push([...arr]);
             highlights.push([k]);
             j++;
@@ -1175,63 +1153,18 @@ const SortVisualizer = () => {
         }
     };
 
-    for (let i = 0; i < n;) {
-        const runEnd = detectRun(i);
-        const runLength = runEnd - i + 1;
-        if (runLength < minRun) {
-            const forceEnd = Math.min(i + minRun - 1, n - 1);
-            insertionSort(i, forceEnd);
-            runStack.push([i, forceEnd]);
-            i = forceEnd + 1;
-        }
-        else {
-            runStack.push([i, runEnd]);
-            i = runEnd + 1;
-        }
-        
-        while (true) {
-            let conditionSatisfied = true;
-            let m = runStack.length;
-            if (m >= 3) {
-                A = runStack[m - 3];
-                B = runStack[m - 2];
-                let C = runStack[m - 1];
-                if (A[1] - A[0] <= B[1] - B[0] + C[1] - C[0]) {
-                    conditionSatisfied = false;
-                    runStack.splice(m - 3, 3);
-                    if (A[1] - A[0] < C[1] - C[0]) {
-                        merge(A[0], B[0], B[1] + 1);
-                        runStack.push([A[0], B[1]]);
-                        runStack.push(C);
-                    } else {
-                        merge(B[0], C[0], C[1] + 1);
-                        runStack.push(A);
-                        runStack.push([B[0], C[1]]);
-                    }
-                }
-            }
-            m = runStack.length;
-            if (m >= 2) {
-                let A = runStack[m - 2];
-                let B = runStack[m - 1];
-                if (A[1] - A[0] <= B[1] - B[0]) {
-                    conditionSatisfied = false;
-                    runStack.splice(m - 2, 2);
-                    merge(A[0], B[0], B[1] + 1);
-                    runStack.push([A[0], B[1]]);
-                }
-            }
-            
-            if (conditionSatisfied) break;
-        }
+    for (let i = 0; i < n; i += minRun) {
+        insertionSort(i, Math.min(i + minRun - 1, n - 1));
     }
-    while (runStack.length > 1) {
-        const m = runStack.length;
-        const A = runStack[m - 2];
-        const B = runStack[m - 1];
-        runStack.splice(m - 2, 2);
-        merge(A[0], B[0], B[1] + 1);
-        runStack.push([A[0], B[1]]);
+
+    for (let size = minRun; size < n; size *= 2) {
+        for (let left = 0; left < n; left += 2 * size) {
+            const mid = Math.min(left + size - 1, n - 1);
+            const right = Math.min(left + 2 * size - 1, n - 1);
+            if (mid < right) {
+                merge(left, mid, right);
+            }
+        }
     }
 
     steps.push([...arr]);
